@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mizo Prompts </title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            /* Default: LIGHT MODE */
+            --primary-color: #007bff;
+            --secondary-color: #f4f7f9; /* Light Background */
+            --card-bg: #ffffff;
+            --text-color: #212529; /* Dark Text */
+            --text-light: #6c757d;
+            --border-radius: 10px;
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            --header-bg: #ffffff;
+            --ad-bg: #e0e0e0; /* Light background for Ad */
+            --trending-color: #ff3e6c; /* Bright color for Trending label */
+            --gemini-color: #008000; /* Green for Gemini button */
+        }
+
+        /* DARK MODE - Toggle Class */
+        body.dark-mode {
+            --secondary-color: #1a1a2e;
+            --card-bg: #27273d;
+            --text-color: #ffffff;
+            --text-light: #cccccc;
+            --shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            --header-bg: #27273d;
+            --ad-bg: #3c3c5c; /* Dark background for Ad */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            transition: background-color 0.3s, color 0.3s; /* Smooth theme transition */
+        }
+
+        body {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--header-bg);
+            padding: 20px 25px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        header h1 {
+            font-size: 1.6rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        /* --- MONETIZATION AD BANNER (FIXED FOR MOBILE) --- */
+        #banner-ad-container {
+            width: 100%;
+            height: 60px; /* Fixed height of the ad */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--ad-bg);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+            /* Ensure it is fixed at the top for better visibility on scroll */
+            position: sticky; 
+            top: 70px; /* Adjust based on header height */
+            z-index: 90; 
+        }
+
+        /* Mobile adaptation for the fixed banner */
+        #banner-ad-container iframe {
+            max-width: 100%; /* Ensure iframe fits mobile width */
+            margin: 0 auto;
+        }
+
+
+        /* --- MODE CHANGER (THEME) --- */
+        .mode-changer {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.4rem;
+            cursor: pointer;
+            outline: none;
+            transition: color 0.3s;
+        }
+
+        .mode-changer:hover {
+            color: var(--primary-color);
+        }
+
+        /* --- SEARCH BAR --- */
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 0;
+            padding: 8px 10px;
+            border: 1px solid var(--text-light);
+            border-radius: 20px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: width 0.4s ease-in-out, opacity 0.4s;
+            opacity: 0;
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 9;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .search-input.expanded {
+            width: 200px; 
+            opacity: 1;
+            padding-left: 15px;
+        }
+
+        .search-button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.3rem;
+            cursor: pointer;
+            outline: none;
+            z-index: 10;
+            position: relative;
+        }
+        .search-button:hover {
+            color: var(--primary-color);
+        }
+
+        /* General container and card styles */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto 30px auto; /* Adjust top margin as banner is sticky */
+            padding: 0 20px;
+        }
+        #listing-page {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            min-height: 50vh;
+            align-items: center;
+            justify-content: center;
+            padding-top: 10px;
+        }
+        .prompt-card {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative; /* For the trending label */
+        }
+        .prompt-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 123, 255, 0.2);
+        }
+        
+        /* 🚀 TRENDING LABEL STYLING */
+        .trending-label {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--trending-color);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            z-index: 50;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+        }
+        .card-content {
+            padding: 15px;
+            min-height: 100px;
+        }
+        .card-content h2 {
+            font-size: 1.1rem;
+            color: var(--text-color);
+        }
+        .card-content p {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        /* 🚀 DETAIL PAGE STYLES - PREVIOUSLY UPDATED */
+        #detail-page {
+            display: none; 
+            max-width: 900px; 
+            margin: 50px auto;
+            background-color: var(--card-bg);
+            padding: 30px; 
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        .detail-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .back-button {
+            color: var(--primary-color);
+            background: none;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 5px 0;
+            align-self: flex-start;
+        }
+        
+        /* 🎯 DETAIL IMAGE FIX - Mobile Size */
+        .detail-image-container {
+            width: 100%;
+            max-height: 400px; 
+            overflow: hidden;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        #detail-prompt-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            background-color: var(--ad-bg); 
+            display: block;
+        }
+        
+        .prompt-text-box {
+            background-color: var(--secondary-color);
+            border: 1px solid var(--text-light);
+            color: var(--text-color);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            min-height: 100px;
+            white-space: pre-wrap; 
+            word-break: break-word;
+        }
+        
+        /* 🎯 COPY BUTTON BETTER LOOK & ANIMATION (Blue) */
+        .copy-button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s ease-out, box-shadow 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);
+        }
+        .copy-button:hover {
+            background-color: #0056b3; 
+            box-shadow: 0 6px 10px rgba(0, 123, 255, 0.4);
+        }
+
+        /* 🎯 GEMINI BUTTON (New Green Button) */
+        #gemini-btn {
+            background-color: var(--gemini-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s ease-out, box-shadow 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 128, 0, 0.3);
+            margin-top: 10px; /* Space from copy button */
+        }
+        #gemini-btn:hover {
+            background-color: #006400;
+            box-shadow: 0 6px 10px rgba(0, 128, 0, 0.4);
+        }
+        
+        /* Button Animation on Click */
+        .copy-button:active, #gemini-btn:active {
+            transform: scale(0.98); 
+        }
+
+        /* Copied Message Alert Styling */
+        .copied-message {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #28a745; 
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            font-weight: 600;
+            animation: fadeInOut 2.5s forwards;
+        }
+
+        /* Custom Animation for the Alert */
+        @keyframes fadeInOut {
+            0% { opacity: 0; bottom: 0px; }
+            10% { opacity: 1; bottom: 20px; }
+            90% { opacity: 1; bottom: 20px; }
+            100% { opacity: 0; bottom: 0px; }
+        }
+        
+        .loading-text {
+            text-align: center;
+            grid-column: 1 / -1; 
+            font-size: 1.2rem;
+            color: var(--text-light);
+        }
+        
+        /* Ensure Popunder and Social Bar scripts do not interfere with layout */
+    </style>
+</head>
+<body class="light-mode">
+    <header>
+        <h1>Mizo Prompts</h1>
+        <div class="controls">
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-input" placeholder="Search prompts..." onkeyup="filterPrompts(this.value)">
+                <button class="search-button" onclick="toggleSearch()"><i class="fas fa-search"></i></button>
+            </div>
+            
+            <button id="mode-changer" class="mode-changer" onclick="toggleDarkMode()">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <div id="banner-ad-container">
+        <script type="text/javascript">
+            atOptions = {
+                'key' : '778ff12c1b99474a39ffa65b463a450c',
+                'format' : 'iframe',
+                'height' : 60,
+                'width' : 468,
+                'params' : {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/778ff12c1b99474a39ffa65b463a450c/invoke.js"></script>
+    </div>
+
+    <div class="container">
+        
+        <div id="listing-page">
+            <h2 class="loading-text">Loading Prompts from Database...</h2>
+        </div>
+   <div id="detail-page">
+            <button class="back-button" onclick="showListingPage()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to Gallery</button>
+            
+            <div class="detail-content"> 
+                
+                <div class="detail-image-container"> 
+                    <img id="detail-prompt-image" src="" alt="AI Generated Image">
+                </div>
+                
+                <div class="prompt-text-box">
+                    <p id="detail-prompt-text">Loading prompt text...</p>
+                </div>
+
+                <button class="copy-button" id="copy-btn">
+                    <i class="fas fa-copy" style="margin-right: 8px;"></i> Copy Full Prompt
+                </button>
+                
+                <button id="gemini-btn">
+                    <i class="fas fa-external-link-alt" style="margin-right: 8px;"></i> Go To Gemini
+                </button>
+            </div>
+        </div>
+
+        <div id="copied-alert" class="copied-message">Prompt Copied!</div>
+    </div>
+    
+    <script type='text/javascript' src='//pl27992382.effectivegatecpm.com/da/b3/62/dab3629836be901898bf768dac8a0884.js'></script>
+    
+    <script>
+        /* --- JAVASCRIPT LOGIC --- */
+
+        // 1. FIREBASE CONFIGURATION & INITIALIZATION
+        const firebaseConfig = {
+          apiKey: "AIzaSyC6grliStzlViVJKckdSPds_TbLODxoXCc", 
+          authDomain: "prompt-market-3fe3d.firebaseapp.com",
+          databaseURL: "https://prompt-market-3fe3d-default-rtdb.firebaseio.com",
+          projectId: "prompt-market-3fe3d",
+          storageBucket: "prompt-market-3fe3d.firebasestorage.app",
+          messagingSenderId: "516044771309",
+          appId: "1:516044771309:web:343777eecbe0881c6961e4"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = app.database(); 
+
+        let allPrompts = []; 
+        const listingPage = document.getElementById('listing-page');
+        const detailPage = document.getElementById('detail-page');
+        const detailPromptImage = document.getElementById('detail-prompt-image');
+        const detailPromptText = document.getElementById('detail-prompt-text');
+        const copyButton = document.getElementById('copy-btn');
+        const geminiButton = document.getElementById('gemini-btn'); // NEW ELEMENT
+        const copiedAlert = document.getElementById('copied-alert');
+        const body = document.body;
+        const modeChanger = document.getElementById('mode-changer');
+        const searchInput = document.getElementById('search-input');
+        
+        // --- NEW GEMINI SMARTLINK CONFIG ---
+        const SMARTLINK = "https://www.effectivegatecpm.com/mq4a9wpw?key=09c76e50df431d708d97ca6c1876abc4";
+        const GEMINI_URL = "https://gemini.google.com/";
+        const GEMINI_CLICK_KEY = 'geminiClicked'; // Local storage key
+
+
+        // --- MODE CHANGER FUNCTIONS ---
+        function toggleDarkMode() {
+            body.classList.toggle('dark-mode');
+            const isDarkMode = body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            modeChanger.innerHTML = isDarkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        }
+
+        function loadThemePreference() {
+            const savedTheme = localStorage.getItem('theme');
+            // Default is Light Mode (auto set light mode)
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+                modeChanger.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                body.classList.remove('dark-mode'); 
+                modeChanger.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+        }
+        
+        // --- SEARCH BAR FUNCTIONS ---
+        function toggleSearch() {
+            if (searchInput.classList.contains('expanded')) {
+                // If expanded, collapse and clear search
+                searchInput.classList.remove('expanded');
+                searchInput.value = '';
+                filterPrompts(''); // Show all prompts
+            } else {
+                // If collapsed, expand and focus
+                searchInput.classList.add('expanded');
+                searchInput.focus();
+            }
+        }
+
+        function filterPrompts(searchTerm) {
+            const term = searchTerm.toLowerCase().trim();
+            
+            if (allPrompts.length === 0) return;
+
+            const filteredPrompts = allPrompts.filter(prompt => {
+                const titleMatch = prompt.title.toLowerCase().includes(term);
+                const promptMatch = prompt.promptText ? prompt.promptText.toLowerCase().includes(term) : false;
+                
+                return titleMatch || promptMatch;
+            });
+            
+            renderCards(filteredPrompts); 
+        }
+        
+        // --- RENDERING FUNCTIONS ---
+        function renderCards(promptsToRender) {
+            listingPage.innerHTML = '';
+            
+            if (promptsToRender.length === 0) {
+                listingPage.innerHTML = `<p class="loading-text">No results found for your search.</p>`;
+                return;
+            }
+
+            promptsToRender.forEach((prompt, index) => { 
+                const card = document.createElement('div');
+                card.className = 'prompt-card';
+                card.onclick = () => showDetailPage(prompt.id); 
+                
+                // Trending Label Logic: Only show for the first item (Index 0)
+                const trendingLabel = index === 0 ? '<div class="trending-label">TRENDING 🔥</div>' : '';
+
+                card.innerHTML = `
+                    ${trendingLabel}
+                    <div class="card-image">
+                        <img src="${prompt.coverImageUrl}" alt="${prompt.title}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x220/3d3d5c/ffffff?text=No+Image'">
+                    </div>
+                    <div class="card-content">
+                        <h2>${prompt.title}</h2>
+                        <p>Date: ${prompt.dateCreated || 'N/A'}</p>
+                    </div>
+                `;
+                listingPage.appendChild(card);
+            });
+        }
+        
+        // --- LOCAL STORAGE CLICK TRACKING ---
+        function getClickData() {
+            const clicks = localStorage.getItem('promptClicks');
+            return clicks ? JSON.parse(clicks) : {};
+        }
+
+        function incrementClickCount(id) {
+            const clickData = getClickData();
+            // Default value is 0, increment by 1
+            clickData[id] = (clickData[id] || 0) + 1; 
+            localStorage.setItem('promptClicks', JSON.stringify(clickData));
+        }
+
+        // --- DATA FETCHING & ADVANCED SORTING ---
+        async function renderListingPage() {
+            listingPage.innerHTML = '<h2 class="loading-text">Fetching Prompts from Database...</h2>';
+            
+            try {
+                const snapshot = await db.ref('prompts').once('value');
+                const promptsObject = snapshot.val();
+                
+                if (!promptsObject) {
+                    listingPage.innerHTML = '<p class="loading-text">No prompts available yet!</p>';
+                    return;
+                }
+
+                // 1. Convert object to array and attach ID
+                allPrompts = Object.keys(promptsObject).map(key => ({
+                    id: key, 
+                    ...promptsObject[key] 
+                }));
+                
+                const clickData = getClickData();
+
+                // 2. Initial Sort: Latest Post First (Index 0)
+                allPrompts.sort((a, b) => {
+                    // Assuming dateCreated is a string that can be parsed or a timestamp
+                    const dateA = a.dateCreated ? new Date(a.dateCreated).getTime() : 0;
+                    const dateB = b.dateCreated ? new Date(b.dateCreated).getTime() : 0;
+                    // Descending order (Latest first)
+                    return dateB - dateA; 
+                });
+
+                // 3. Find Highest Clicked Item for Index 1 (Popularity Boost)
+                if (allPrompts.length > 1) {
+                    let highestClickCount = -1;
+                    let highestClickedIndex = -1;
+
+                    // Start from index 1, as index 0 is reserved for the Latest Post
+                    for (let i = 1; i < allPrompts.length; i++) {
+                        const promptId = allPrompts[i].id;
+                        const clicks = clickData[promptId] || 0;
+                        
+                        if (clicks > highestClickCount) {
+                            highestClickCount = clicks;
+                            highestClickedIndex = i;
+                        }
+                    }
+                    
+                    // 4. Swap: Move the highest clicked item to index 1
+                    if (highestClickedIndex > 1) {
+                        const promptToMove = allPrompts[highestClickedIndex];
+                        allPrompts.splice(highestClickedIndex, 1); // Remove from current position
+                        allPrompts.splice(1, 0, promptToMove);    // Insert at index 1
+                    }
+                }
+
+
+                renderCards(allPrompts); 
+
+            } catch (error) {
+                console.error("Firebase Error:", error);
+                listingPage.innerHTML = `<p class="loading-text" style="color:#ff6b6b;">Error loading data. Check console (F12) for details.<br>(${error.message})</p>`;
+            }
+        }
+
+        // --- PAGE VIEW TOGGLE & COPY FUNCTIONALITY ---
+        function showListingPage() {
+            listingPage.style.display = 'grid';
+            detailPage.style.display = 'none';
+            window.scrollTo(0, 0); 
+        }
+
+        function showDetailPage(id) {
+            const prompt = allPrompts.find(p => p.id === id); 
+            
+            if (!prompt) {
+                console.error("Prompt data not found for ID:", id);
+                return;
+            }
+
+            // Increment click count when user opens the detail page
+            incrementClickCount(id); 
+
+            detailPromptImage.src = prompt.promptImageUrl; 
+            detailPromptImage.onerror = function() { this.onerror=null;this.src='https://placehold.co/800x450/3d3d5c/ffffff?text=No+Detail+Image'; };
+            detailPromptText.textContent = prompt.promptText; 
+            
+            copyButton.onclick = () => copyPrompt(prompt.promptText);
+            
+            // 🚀 NEW GEMINI BUTTON LOGIC
+            geminiButton.onclick = handleGeminiClick;
+
+            listingPage.style.display = 'none';
+            detailPage.style.display = 'block';
+            window.scrollTo(0, 0); 
+        }
+
+        // 🚀 NEW: Gemini Button Click Handler
+        function handleGeminiClick() {
+            const clicked = localStorage.getItem(GEMINI_CLICK_KEY);
+
+            if (!clicked) {
+                // First time click: Open Smartlink
+                window.open(SMARTLINK, '_blank');
+                localStorage.setItem(GEMINI_CLICK_KEY, 'true'); // Set flag for next time
+            } else {
+                // Second time click: Redirect to Gemini
+                window.location.href = GEMINI_URL;
+            }
+        }
+
+
+        async function copyPrompt(text) {
+            // Using document.execCommand('copy') for better compatibility in sandbox environments
+            if (document.execCommand) {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                     // Show "Copied" alert with animation
+                    copiedAlert.style.display = 'block';
+                    // We let the CSS animation handle the fade-out
+                    setTimeout(() => {
+                        copiedAlert.style.display = 'none';
+                    }, 2500);
+                } catch (err) {
+                    console.error('Fallback copy failed:', err);
+                }
+                document.body.removeChild(textarea);
+            } else {
+                 // Fallback using modern API
+                try {
+                    await navigator.clipboard.writeText(text);
+                    copiedAlert.style.display = 'block';
+                    // We let the CSS animation handle the fade-out
+                    setTimeout(() => {
+                        copiedAlert.style.display = 'none';
+                    }, 2500);
+                } catch (err) {
+                    console.error('Copy failed:', err);
+                }
+            }
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadThemePreference(); // Load theme setting
+            renderListingPage();   // Start fetching data
+        });
+        
+    </script>
+</body>
+<div id="banner-ad-container">
+    <script type="text/javascript">
+        atOptions = {
+            'key' : '778ff12c1b99474a39ffa65b463a450c',
+            'format' : 'iframe',
+            'height' : 60,
+            'width' : 468,
+            'params' : {}
+        };
+    </script>
+    <script type="text/javascript" src="//www.highperformanceformat.com/778ff12c1b99474a39ffa65b463a450c/invoke.js"></script>
+</div>
+
+<footer style="text-align: center; padding: 20px; color: var(--text-light); font-size: 0.9rem;">
+    <p>©Mizo Prompt By Rameshgoran3</p>
+    <a 
+        href="https://www.instagram.com/rameshgorain3?igsh=eTBpNWVlNHd4cmhh" 
+        target="_blank" 
+        style="color: var(--primary-color); text-decoration: none; margin-top: 5px; display: inline-block;"
+        title="Instagram Profile"
+    >
+        Follow on Instagram
+    </a>
+</footer>
+</html>
