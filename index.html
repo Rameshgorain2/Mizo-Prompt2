@@ -345,7 +345,7 @@
         
         #gemini-btn {
             background-color: var(--gemini-color);
-            margin-top: 0; 
+               margin-top: 0; 
         }
         
         #gemini-btn:hover {
@@ -416,7 +416,7 @@
             atOptions = {
                 'key' : '778ff12c1b99474a39ffa65b463a450c',
                 'format' : 'iframe',
-                  'height' : 60,
+                'height' : 60,
                 'width' : 468,
                 'params' : {}
             };
@@ -455,13 +455,45 @@
         <div id="copied-alert" class="copied-message">Prompt Copied!</div>
     </div>
     
-    <script type='text/javascript' src='//pl27914538.effectivegatecpm.com/c9/6c/83/c96c8314d948529f5bab1c97b873d8fd.js'></script>
-    <script type='text/javascript' src='//pl27914538.effectivegatecpm.com/c9/6c/83/c96c8314d948529f5bab1c97b873d8fd.js'></script>
-    <script type='text/javascript' src='//pl27914538.effectivegatecpm.com/c9/6c/83/c96c8314d948529f5bab1c97b873d8fd.js'></script>
-    <script type='text/javascript' src='//pl27914534.effectivegatecpm.com/f8/be/47/f8be47a3d60bc35e8ceced2b84441a16.js'></script>
-        
     <script>
-        /* --- JAVASCRIPT LOGIC --- */
+        // 🔗 SMART LINK CONFIGURATION
+        const SMARTLINK = "https://www.effectivegatecpm.com/mq4a9wpw?key=09c76e50df431d708d97ca6c1876abc4";
+
+        // 🚀 ADVANCED POPUNDER LOGIC: Smart Link on every 1st, 3rd, 5th click (Odd clicks)
+        
+        // Function to initialize or get click count from localStorage
+        function getClickCount() {
+            return parseInt(localStorage.getItem('userClickCount') || '0');
+        }
+
+        // Function to set and increment click count
+        function setClickCount(count) {
+            localStorage.setItem('userClickCount', count);
+        }
+
+        document.addEventListener('click', function(e) {
+            // Check if the click is not on the banner ad (to avoid interference)
+            const isAdBannerClick = e.target.closest('#banner-ad-container');
+            
+            if (!isAdBannerClick) {
+                let currentCount = getClickCount();
+                currentCount++;
+                setClickCount(currentCount);
+
+                // Check if the current click count is ODD (1, 3, 5, ...)
+                if (currentCount % 2 !== 0) {
+                    // It's an odd click: Show Smart Link
+                    window.open(SMARTLINK, '_blank');
+                    
+                    // Note: The actual button action (e.g., card click, copy click) 
+                    // will still proceed after this popunder opens in a new tab.
+                } 
+                // If it's an even click (2, 4, 6...), only the actual button action proceeds.
+            }
+        });
+        
+        
+        /* --- JAVASCRIPT LOGIC (Website Functionality) --- */
 
         // 1. FIREBASE CONFIGURATION & INITIALIZATION
         const firebaseConfig = {
@@ -489,7 +521,6 @@
         const modeChanger = document.getElementById('mode-changer');
         const searchInput = document.getElementById('search-input');
         
-        const SMARTLINK = "https://www.effectivegatecpm.com/mq4a9wpw?key=09c76e50df431d708d97ca6c1876abc4";
         const GEMINI_URL = "https://gemini.google.com/";
         const GEMINI_CLICK_KEY = 'geminiClicked'; 
 
@@ -763,15 +794,9 @@
             window.scrollTo(0, 0); 
         }
 
+        // Base functions (no monetization logic here, handled by Popunder)
         function handleGeminiClick() {
-            const clicked = localStorage.getItem(GEMINI_CLICK_KEY);
-
-            if (!clicked) {
-                window.open(SMARTLINK, '_blank');
-                localStorage.setItem(GEMINI_CLICK_KEY, 'true'); 
-            } else {
-                window.location.href = GEMINI_URL;
-            }
+            window.location.href = GEMINI_URL;
         }
 
         async function copyPrompt(text) {
@@ -787,34 +812,46 @@
                 }, 2500); 
             };
 
-            if (document.execCommand) {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                try {
-                    document.execCommand('copy');
-                    showCopySuccess();
-                } catch (err) {
-                    console.error('Fallback copy failed:', err);
+            const doCopy = async () => {
+                 if (document.execCommand) {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        return true;
+                    } catch (err) {
+                        console.error('Fallback copy failed:', err);
+                        return false;
+                    } finally {
+                        document.body.removeChild(textarea);
+                    }
+                } else {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        return true;
+                    } catch (err) {
+                        console.error('Copy failed:', err);
+                        return false;
+                    }
                 }
-                document.body.removeChild(textarea);
-            } else {
-                try {
-                    await navigator.clipboard.writeText(text);
-                    showCopySuccess();
-                } catch (err) {
-                    console.error('Copy failed:', err);
-                }
+            }
+
+            const copySuccessful = await doCopy();
+
+            if (copySuccessful) {
+                showCopySuccess();
             }
         }
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             loadThemePreference(); 
-            renderListingPage();   
+             renderListingPage();   
         });
         
     </script>
 </body>
-</html>
+</html>;   
+    
