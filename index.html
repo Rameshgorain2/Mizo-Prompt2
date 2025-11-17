@@ -94,15 +94,14 @@
             background-color: var(--ad-bg);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             margin: 20px 0;
-            /* Ensure it is fixed at the top for better visibility on scroll */
             position: sticky; 
-            top: 70px; /* Adjust based on header height */
+            top: 70px; 
             z-index: 90; 
         }
 
         /* Mobile adaptation for the fixed banner */
         #banner-ad-container iframe {
-            max-width: 100%; /* Ensure iframe fits mobile width */
+            max-width: 100%; 
             margin: 0 auto;
         }
 
@@ -172,7 +171,7 @@
         /* General container and card styles */
         .container {
             max-width: 1200px;
-            margin: 0 auto 30px auto; /* Adjust top margin as banner is sticky */
+            margin: 0 auto 30px auto; 
             padding: 0 20px;
         }
         #listing-page {
@@ -191,7 +190,7 @@
             cursor: pointer;
             transition: transform 0.3s, box-shadow 0.3s;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            position: relative; /* For the trending label */
+            position: relative; 
         }
         .prompt-card:hover {
             transform: translateY(-5px);
@@ -233,7 +232,7 @@
             color: var(--text-light);
         }
 
-        /* 🚀 DETAIL PAGE STYLES - PREVIOUSLY UPDATED */
+        /* 🚀 DETAIL PAGE STYLES */
         #detail-page {
             display: none; 
             max-width: 900px; 
@@ -286,7 +285,7 @@
             word-break: break-word;
         }
         
-        /* 🎯 COPY BUTTON BETTER LOOK & ANIMATION (Blue) */
+        /* 🎯 COPY BUTTON BETTER LOOK & ANIMATION (Blue -> Green) */
         .copy-button {
             background-color: var(--primary-color);
             color: white;
@@ -296,7 +295,7 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s ease-out, box-shadow 0.3s;
+            transition: background-color 0.3s ease-in-out, transform 0.1s ease-out, box-shadow 0.3s;
             box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);
         }
         .copy-button:hover {
@@ -304,7 +303,19 @@
             box-shadow: 0 6px 10px rgba(0, 123, 255, 0.4);
         }
 
-        /* 🎯 GEMINI BUTTON (New Green Button) */
+        /* Animation on button press (Scale-down effect) */
+        .copy-button:active {
+            transform: scale(0.98); 
+        }
+
+        /* Post-Copy Success State (Green) */
+        .copy-button.copied {
+            background-color: #28a745; /* Success Green */
+            box-shadow: 0 4px 6px rgba(40, 167, 69, 0.4);
+            transform: scale(1); 
+        }
+
+        /* 🎯 GEMINI BUTTON */
         #gemini-btn {
             background-color: var(--gemini-color);
             color: white;
@@ -316,7 +327,7 @@
             cursor: pointer;
             transition: background-color 0.3s, transform 0.1s ease-out, box-shadow 0.3s;
             box-shadow: 0 4px 6px rgba(0, 128, 0, 0.3);
-            margin-top: 10px; /* Space from copy button */
+            margin-top: 10px; 
         }
         #gemini-btn:hover {
             background-color: #006400;
@@ -324,7 +335,7 @@
         }
         
         /* Button Animation on Click */
-        .copy-button:active, #gemini-btn:active {
+        #gemini-btn:active {
             transform: scale(0.98); 
         }
 
@@ -353,21 +364,58 @@
             100% { opacity: 0; bottom: 0px; }
         }
         
-        .loading-text {
-            text-align: center;
+        /* 🎯 UNIQUE DYNAMIC LOADER STYLES */
+        .loading-container {
             grid-column: 1 / -1; 
-            font-size: 1.2rem;
-            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 0;
+            min-height: 40vh; 
+            width: 100%;
+        }
+
+        .loading-text {
+            font-size: 2.2rem; /* Slightly larger */
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            /* Hide by default until animation runs */
+            opacity: 0; 
+            animation: textFadeIn 0.5s forwards; /* Container fade-in */
         }
         
-        /* Ensure Popunder and Social Bar scripts do not interfere with layout */
+        @keyframes textFadeIn {
+            to { opacity: 1; }
+        }
+
+        /* The span for each letter */
+        .loading-text span {
+            opacity: 0;
+            transform: translateY(20px);
+            /* NEW: Bounce animation applied to each letter */
+            animation: staggeredBounce 0.8s ease-out forwards; 
+            padding: 0 2px;
+        }
+
+        /* NEW Animation definition: Staggered Bounce (Appear from below, settle) */
+        @keyframes staggeredBounce {
+            0% { transform: translateY(20px); opacity: 0; }
+            50% { transform: translateY(-5px); opacity: 1; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* NOTE: The delay for each character is now set via JavaScript for flexibility. */
     </style>
 </head>
 <body class="light-mode">
     
     <header>
         <h1>Mizo Prompt</h1>
-        <div class="controls">
+   <div class="controls">
             <div class="search-container">
                 <input type="text" id="search-input" class="search-input" placeholder="Search prompts..." onkeyup="filterPrompts(this.value)">
                 <button class="search-button" onclick="toggleSearch()"><i class="fas fa-search"></i></button>
@@ -395,7 +443,8 @@
     <div class="container">
         
         <div id="listing-page">
-            <h2 class="loading-text">Loading Prompts from Database...</h2>
+            <div id="loading-container" class="loading-container">
+                </div>
         </div>
 
         <div id="detail-page">
@@ -428,7 +477,8 @@
     <script type='text/javascript' src='//pl27914538.effectivegatecpm.com/c9/6c/83/c96c8314d948529f5bab1c97b873d8fd.js'></script>
     <script type='text/javascript' src='//pl27914538.effectivegatecpm.com/c9/6c/83/c96c8314d948529f5bab1c97b873d8fd.js'></script>
     <script type='text/javascript' src='//pl27914534.effectivegatecpm.com/f8/be/47/f8be47a3d60bc35e8ceced2b84441a16.js'></script>
-        <script>
+        
+    <script>
         /* --- JAVASCRIPT LOGIC --- */
 
         // 1. FIREBASE CONFIGURATION & INITIALIZATION
@@ -451,7 +501,7 @@
         const detailPromptImage = document.getElementById('detail-prompt-image');
         const detailPromptText = document.getElementById('detail-prompt-text');
         const copyButton = document.getElementById('copy-btn');
-        const geminiButton = document.getElementById('gemini-btn'); // NEW ELEMENT
+        const geminiButton = document.getElementById('gemini-btn'); 
         const copiedAlert = document.getElementById('copied-alert');
         const body = document.body;
         const modeChanger = document.getElementById('mode-changer');
@@ -511,13 +561,43 @@
             
             renderCards(filteredPrompts); 
         }
+
+        // 🎯 UPDATED: Function to show/hide the dynamic loader
+        function showLoader(show, message = "MIZO PROMPT") {
+            listingPage.innerHTML = ''; // Clear previous content
+
+            if (show) {
+                const container = document.createElement('div');
+                container.id = 'loading-container';
+                container.className = 'loading-container';
+                
+                const textDiv = document.createElement('div');
+                textDiv.className = 'loading-text';
+                
+                // Convert the message string into spans for animation
+                const characters = message.split('');
+                characters.forEach((char, index) => {
+                    const span = document.createElement('span');
+                    span.textContent = char === ' ' ? '\u00A0' : char; // Use non-breaking space for spaces
+                    
+                    // Set staggered animation delay directly in style
+                    span.style.animationDelay = `${index * 0.08}s`; 
+
+                    textDiv.appendChild(span);
+                });
+                
+                container.appendChild(textDiv);
+                listingPage.appendChild(container);
+
+            } 
+        }
         
         // --- RENDERING FUNCTIONS ---
         function renderCards(promptsToRender) {
             listingPage.innerHTML = '';
             
             if (promptsToRender.length === 0) {
-                listingPage.innerHTML = `<p class="loading-text">No results found for your search.</p>`;
+                listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; padding-top: 50px;">No results found for your search.</p>`;
                 return;
             }
 
@@ -558,14 +638,18 @@
 
         // --- DATA FETCHING & ADVANCED SORTING ---
         async function renderListingPage() {
-            listingPage.innerHTML = '<h2 class="loading-text">Fetching Prompts from Database...</h2>';
+            // Display the new unique loader
+            showLoader(true);
             
             try {
                 const snapshot = await db.ref('prompts').once('value');
                 const promptsObject = snapshot.val();
                 
+                // Hide the loader before showing results/message
+                listingPage.innerHTML = '';
+
                 if (!promptsObject) {
-                    listingPage.innerHTML = '<p class="loading-text">No prompts available yet!</p>';
+                    listingPage.innerHTML = '<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; color:#ff6b6b; padding-top: 50px;">No prompts available yet!</p>';
                     return;
                 }
 
@@ -610,12 +694,14 @@
                     }
                 }
 
-
                 renderCards(allPrompts); 
 
             } catch (error) {
                 console.error("Firebase Error:", error);
-                listingPage.innerHTML = `<p class="loading-text" style="color:#ff6b6b;">Error loading data. Check console (F12) for details.<br>(${error.message})</p>`;
+                // Hide the loader
+                listingPage.innerHTML = '';
+                // Show error message
+                listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; color:#ff6b6b; padding-top: 50px;">Error loading data. Check console (F12) for details.<br>(${error.message})</p>`;
             }
         }
 
@@ -666,7 +752,27 @@
         }
 
 
+        // 🎯 Copy Prompt function with success animation and color change
         async function copyPrompt(text) {
+            const copyBtn = document.getElementById('copy-btn');
+            
+            // Function to handle the visual feedback
+            const showCopySuccess = () => {
+                // 1. Change button color to green (Success)
+                copyBtn.classList.add('copied');
+                
+                // 2. Show "Copied" alert with animation
+                copiedAlert.style.display = 'block';
+
+                // 3. Reset after 2.5 seconds (matches the animation duration)
+                setTimeout(() => {
+                    copiedAlert.style.display = 'none';
+                    // 4. Reset button color back to blue/primary
+                    copyBtn.classList.remove('copied'); 
+                }, 2500); 
+            };
+
+
             // Using document.execCommand('copy') for better compatibility in sandbox environments
             if (document.execCommand) {
                 const textarea = document.createElement('textarea');
@@ -675,12 +781,7 @@
                 textarea.select();
                 try {
                     document.execCommand('copy');
-                     // Show "Copied" alert with animation
-                    copiedAlert.style.display = 'block';
-                    // We let the CSS animation handle the fade-out
-                    setTimeout(() => {
-                        copiedAlert.style.display = 'none';
-                    }, 2500);
+                    showCopySuccess();
                 } catch (err) {
                     console.error('Fallback copy failed:', err);
                 }
@@ -689,11 +790,7 @@
                  // Fallback using modern API
                 try {
                     await navigator.clipboard.writeText(text);
-                    copiedAlert.style.display = 'block';
-                    // We let the CSS animation handle the fade-out
-                    setTimeout(() => {
-                        copiedAlert.style.display = 'none';
-                    }, 2500);
+                    showCopySuccess();
                 } catch (err) {
                     console.error('Copy failed:', err);
                 }
