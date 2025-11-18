@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <meta name="google-site-verification" content="j0bfSV86lfx9Ll_Ak0Zt180JeJ-VA_g7kWghMiIHZCo" />
-    
     <meta name="description" content="Mizo Prompt: The ultimate sharing platform for Gemini AI Photo Prompts. Get high-quality, creative, and searchable Gemini Prompts for free! Start exploring today." />
-    
     <title>Mizo Prompt - Gemini AI Photo Prompt Sharing Platform</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -23,19 +21,21 @@
         /* --- CSS STYLES --- */
         :root {
             /* Default: LIGHT MODE */
-            --primary-color: #007bff; /* Vibrant Blue */
-            --secondary-color: #f8f9fa; /* Very Light Background */
+            --primary-color: #007bff;
+            --secondary-color: #f8f9fa;
             --card-bg: #ffffff;
-            --text-color: #212529; /* Dark Text */
-            --text-light: #6c757d; /* Muted Text */
+            --text-color: #212529;
+            --text-light: #6c757d;
             --border-radius: 12px; 
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
             --header-bg: #ffffff;
-            --ad-bg: #e9ecef; /* Neutral light gray */
+            --ad-bg: #e9ecef;
             --trending-color: #ff3e6c; 
             --gemini-color: #008000; 
             --like-color-default: #808080; 
             --like-color-liked: #ffffff; 
+            --success-color: #28a745; 
+            --warning-color: #ffc107;
         }
 
         /* DARK MODE - Toggle Class */
@@ -105,7 +105,7 @@
             z-index: 90; 
         }
 
-        /* --- SEARCH BAR --- */
+        /* --- SEARCH BAR & MODE/FAV BUTTONS --- */
         .search-input {
             width: 0;
             padding: 10px 15px; 
@@ -128,7 +128,7 @@
             opacity: 1;
         }
 
-        .search-button, .mode-changer {
+        .search-button, .mode-changer, .favorites-button {
             background: none;
             border: none;
             color: var(--text-light);
@@ -137,7 +137,7 @@
             outline: none;
             transition: color 0.3s;
         }
-        .search-button:hover, .mode-changer:hover {
+        .search-button:hover, .mode-changer:hover, .favorites-button:hover {
             color: var(--primary-color);
         }
 
@@ -148,7 +148,7 @@
             margin: 20px auto 30px auto; 
             padding: 0 20px;
         }
-        #listing-page {
+        #listing-page, #favorites-page .prompt-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
             gap: 30px;
@@ -162,6 +162,7 @@
             cursor: pointer;
             transition: transform 0.3s, box-shadow 0.3s;
             box-shadow: var(--shadow); 
+            position: relative; 
         }
         .prompt-card:hover {
             transform: translateY(-3px);
@@ -221,7 +222,7 @@
             z-index: 50;
         }
         
-        /* --- LIKE BUTTON --- */
+        /* --- LIKE BUTTON (Heart is now the Save/Favorite action) --- */
         .like-button {
             background: none;
             border: 1px solid var(--text-light); 
@@ -236,6 +237,7 @@
             min-width: 65px;
             justify-content: center;
             box-shadow: none; 
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s, transform 0.3s;
         }
         .like-button:hover:not(.liked) {
             background-color: rgba(0, 123, 255, 0.05); 
@@ -244,18 +246,28 @@
         }
         
         .like-button.liked {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            background-color: var(--trending-color); 
+            border-color: var(--trending-color);
             color: var(--like-color-liked); 
-            transform: scale(1.05);
         }
+
+        /* Icons */
         .like-button .fa-heart {
             font-size: 1.1em;
         }
         .like-button.liked .far { display: none; }
         .like-button:not(.liked) .fas { display: none; }
 
-
+        /* Like Animation */
+        @keyframes liked-pop-animation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .like-button.liked.liked-pop .fas {
+            animation: liked-pop-animation 0.4s ease-out;
+        }
+        
         /* --- DETAIL PAGE STYLES --- */
         #detail-page {
             display: none; 
@@ -266,36 +278,49 @@
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
         }
-        
+
         .detail-image-container {
             width: 100%;
-            height: 400px; 
+            max-height: 450px;
             overflow: hidden;
+            margin-bottom: 25px;
             border-radius: var(--border-radius);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15); 
-            margin-bottom: 25px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+
         #detail-prompt-image {
             width: 100%;
-            height: 100%;
-            object-fit: cover; 
-            object-position: center top; 
-            background-color: var(--ad-bg); 
+            height: auto;
             display: block;
+            object-fit: cover;
         }
         
-        .prompt-text-box {
-            background-color: var(--secondary-color);
-            border: 1px solid var(--text-light);
-            color: var(--text-color);
-            padding: 18px; 
-            border-radius: 10px;
-            min-height: 120px;
-            font-size: 0.95rem;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); 
-            margin-bottom: 20px; 
+        /* --- FAVORITES PAGE STYLES --- */
+        #favorites-page {
+            display: none;
+            max-width: 1200px;
+            margin: 20px auto 30px auto;
+            padding: 0 20px;
         }
         
+        #favorites-page h2 {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-top: 10px;
+            font-weight: 700;
+        }
+        
+        .empty-favorites {
+            text-align: center;
+            padding: 80px 20px;
+            font-size: 1.1rem;
+            color: var(--text-light);
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
         /* --- COPY & GEMINI BUTTONS --- */
         .copy-button, #gemini-btn, .back-button {
             width: 100%; 
@@ -339,20 +364,32 @@
             background-color: #0069d9;
         }
         
+        /* Copy Animation Styles (Pop and Bounce) */
         .copy-button.copied {
             background-color: #28a745; 
+            transform: scale(1.02); 
+        }
+
+        @keyframes copied-pop-animation {
+            0% { transform: scale(1.02); }
+            50% { transform: scale(1.05); } 
+            100% { transform: scale(1.02); }
+        }
+
+        .copy-button.copied.animate {
+            animation: copied-pop-animation 0.3s ease-out;
         }
         
         #gemini-btn {
             background-color: var(--gemini-color);
-               margin-top: 0; 
+            margin-top: 0; 
         }
         
         #gemini-btn:hover {
             background-color: #006b00;
         }
 
-        /* 🚀 ANIMATION STYLES */
+        /* 🚀 ANIMATION STYLES (LOADER) */
         .loading-container {
             grid-column: 1 / -1; 
             display: flex;
@@ -393,6 +430,23 @@
             }
         }
         
+        /* --- ALERT MESSAGE STYLES --- */
+        .alert-message {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 200;
+            display: none;
+            transition: opacity 0.3s;
+            font-weight: 600;
+        }
+
     </style>
 </head>
 <body class="light-mode">
@@ -400,6 +454,10 @@
     <header>
         <h1>Mizo Prompt</h1>
    <div class="controls">
+            <button class="favorites-button" onclick="showFavoritesPage()">
+                <i class="fas fa-heart"></i>
+            </button>
+            
             <div class="search-container">
                 <input type="text" id="search-input" class="search-input" placeholder="Search prompts..." onkeyup="filterPrompts(this.value)">
                 <button class="search-button" onclick="toggleSearch()"><i class="fas fa-search"></i></button>
@@ -414,7 +472,7 @@
     <div id="banner-ad-container">
         <script type="text/javascript">
             atOptions = {
-                'key' : '778ff12c1b99474a39ffa65b463a450c',
+                    'key' : '778ff12c1b99474a39ffa65b463a450c',
                 'format' : 'iframe',
                 'height' : 60,
                 'width' : 468,
@@ -429,7 +487,7 @@
         <div id="listing-page">
             </div>
 
-        <div id="detail-page">
+        <div id="detail-page" style="display:none;">
             <button class="back-button" onclick="showListingPage()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to Gallery</button>
             
             <div class="detail-content"> 
@@ -451,8 +509,16 @@
                 </button>
             </div>
         </div>
+        
+        <div id="favorites-page" style="display:none;">
+            <button class="back-button" onclick="showListingPage()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to Gallery</button>
+            <h2>My Liked Prompts ❤️</h2>
+            <div id="favorites-grid" class="prompt-grid">
+                </div>
+        </div>
 
-        <div id="copied-alert" class="copied-message">Prompt Copied!</div>
+        <div id="copied-alert" class="alert-message">Prompt Copied!</div>
+        <div id="app-alert" class="alert-message"></div>
     </div>
     
     <script>
@@ -460,19 +526,15 @@
         const SMARTLINK = "https://www.effectivegatecpm.com/mq4a9wpw?key=09c76e50df431d708d97ca6c1876abc4";
 
         // 🚀 ADVANCED POPUNDER LOGIC: Smart Link on every 1st, 3rd, 5th click (Odd clicks)
-        
-        // Function to initialize or get click count from localStorage
         function getClickCount() {
             return parseInt(localStorage.getItem('userClickCount') || '0');
         }
 
-        // Function to set and increment click count
         function setClickCount(count) {
             localStorage.setItem('userClickCount', count);
         }
 
         document.addEventListener('click', function(e) {
-            // Check if the click is not on the banner ad (to avoid interference)
             const isAdBannerClick = e.target.closest('#banner-ad-container');
             
             if (!isAdBannerClick) {
@@ -480,15 +542,9 @@
                 currentCount++;
                 setClickCount(currentCount);
 
-                // Check if the current click count is ODD (1, 3, 5, ...)
                 if (currentCount % 2 !== 0) {
-                    // It's an odd click: Show Smart Link
                     window.open(SMARTLINK, '_blank');
-                    
-                    // Note: The actual button action (e.g., card click, copy click) 
-                    // will still proceed after this popunder opens in a new tab.
                 } 
-                // If it's an even click (2, 4, 6...), only the actual button action proceeds.
             }
         });
         
@@ -499,7 +555,7 @@
         const firebaseConfig = {
           apiKey: "AIzaSyC6grliStzlViVJKckdSPds_TbLODxoXCc", 
           authDomain: "prompt-market-3fe3d.firebaseapp.com",
-          databaseURL: "https://prompt-market-3fe3d-default-rtdb.firebaseio.com",
+          databaseURL: "https://prompt-market-3fe3d-default-rtdb.firebaseio.com", 
           projectId: "prompt-market-3fe3d",
           storageBucket: "prompt-market-3fe3d.firebasestorage.app",
           messagingSenderId: "516044771309",
@@ -512,17 +568,31 @@
         let allPrompts = []; 
         const listingPage = document.getElementById('listing-page');
         const detailPage = document.getElementById('detail-page');
+        const favoritesPage = document.getElementById('favorites-page'); 
+        const favoritesGrid = document.getElementById('favorites-grid'); 
         const detailPromptImage = document.getElementById('detail-prompt-image');
         const detailPromptText = document.getElementById('detail-prompt-text');
         const copyButton = document.getElementById('copy-btn');
         const geminiButton = document.getElementById('gemini-btn'); 
+        const appAlert = document.getElementById('app-alert'); 
         const copiedAlert = document.getElementById('copied-alert');
         const body = document.body;
         const modeChanger = document.getElementById('mode-changer');
         const searchInput = document.getElementById('search-input');
         
         const GEMINI_URL = "https://gemini.google.com/";
-        const GEMINI_CLICK_KEY = 'geminiClicked'; 
+        
+        // --- UTILITY: ALERT MESSAGE ---
+        function showAlert(message, type = 'success', duration = 2500) {
+            appAlert.textContent = message;
+            appAlert.style.backgroundColor = type === 'error' ? '#dc3545' : (type === 'warning' ? 'var(--warning-color)' : 'var(--success-color)');
+            appAlert.style.color = type === 'warning' ? 'var(--text-color)' : 'white';
+            appAlert.style.display = 'block';
+
+            setTimeout(() => {
+                appAlert.style.display = 'none';
+            }, duration);
+        }
 
         // --- MODE CHANGER FUNCTIONS ---
         function toggleDarkMode() {
@@ -572,9 +642,9 @@
             listingPage.innerHTML = ''; 
 
             if (show) {
-                // Ensure listing page is visible to show loader
                 listingPage.style.display = 'grid'; 
-                detailPage.style.display = 'none'; // Ensure detail page is hidden
+                detailPage.style.display = 'none'; 
+                favoritesPage.style.display = 'none'; 
 
                 const container = document.createElement('div');
                 container.id = 'loading-container';
@@ -597,91 +667,192 @@
         }
         
         // --- RENDERING FUNCTIONS ---
-        function renderCards(promptsToRender) {
-            listingPage.innerHTML = '';
+        function createPromptCard(prompt, isTrending, likedPrompts) {
+            const card = document.createElement('div');
+            card.className = 'prompt-card';
+            card.onclick = (e) => {
+                if (!e.target.closest('.like-button')) {
+                    showDetailPage(prompt.id);
+                }
+            }; 
+            
+            const trendingLabel = isTrending ? '<div class="trending-label">TRENDING 🔥</div>' : '';
+            const isLiked = likedPrompts[prompt.id];
+
+            card.innerHTML = `
+                ${trendingLabel}
+                <div class="card-image">
+                    <img src="${prompt.coverImageUrl}" alt="${prompt.title}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x200/3d3d5c/ffffff?text=No+Image'">
+                </div>
+                <div class="card-content">
+                    <div class="card-content-header">
+                        <h2>${prompt.title}</h2>
+                        <button class="like-button ${isLiked ? 'liked' : ''}" data-id="${prompt.id}" onclick="likePrompt(event, '${prompt.id}', this)">
+                            <i class="far fa-heart"></i>
+                            <i class="fas fa-heart"></i>
+                            <span class="like-count">${prompt.likes || 0}</span>
+                        </button>
+                    </div>
+                    <p>Date: ${prompt.dateCreated || 'N/A'}</p>
+                </div>
+            `;
+            return card;
+        }
+
+        function renderCards(promptsToRender, targetElement = listingPage) {
+            targetElement.innerHTML = '';
             
             if (promptsToRender.length === 0) {
-                listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; padding-top: 50px;">No results found for your search.</p>`;
+                targetElement.innerHTML = `<div class="empty-favorites" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; padding-top: 50px;">No results found.</div>`;
                 return;
             }
             
             const likedPrompts = JSON.parse(localStorage.getItem('likedPrompts') || '{}');
 
             promptsToRender.forEach((prompt, index) => { 
-                const card = document.createElement('div');
-                card.className = 'prompt-card';
-                card.onclick = (e) => {
-                    // Prevent card click from triggering when like button is clicked
-                    if (!e.target.closest('.like-button')) {
-                        showDetailPage(prompt.id);
-                    }
-                }; 
-                
-                // Trending label only on the first item
-                const trendingLabel = index === 0 ? '<div class="trending-label">TRENDING 🔥</div>' : '';
-                const isLiked = likedPrompts[prompt.id];
-
-                card.innerHTML = `
-                    ${trendingLabel}
-                    <div class="card-image">
-                        <img src="${prompt.coverImageUrl}" alt="${prompt.title}" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/400x200/3d3d5c/ffffff?text=No+Image'">
-                    </div>
-                    <div class="card-content">
-                        <div class="card-content-header">
-                            <h2>${prompt.title}</h2>
-                            <button class="like-button ${isLiked ? 'liked' : ''}" data-id="${prompt.id}" onclick="likePrompt('${prompt.id}', this)">
-                                <i class="far fa-heart"></i> <i class="fas fa-heart"></i> <span class="like-count">${prompt.likes || 0}</span>
-                            </button>
-                        </div>
-                        <p>Date: ${prompt.dateCreated || 'N/A'}</p>
-                    </div>
-                `;
-                listingPage.appendChild(card);
+                const isTrending = targetElement === listingPage && index === 0;
+                const card = createPromptCard(prompt, isTrending, likedPrompts);
+                targetElement.appendChild(card);
             });
         }
         
-        // --- LIKE FUNCTIONALITY ---
-        function getLikedPrompts() {
-            return JSON.parse(localStorage.getItem('likedPrompts') || '{}');
+        // --- PAGE VIEW TOGGLE & NAVIGATION ---
+        function showListingPage() {
+            listingPage.style.display = 'grid';
+            detailPage.style.display = 'none';
+            favoritesPage.style.display = 'none'; 
+            window.scrollTo(0, 0); 
+        }
+        
+        // --- FAVORITES PAGE LOGIC (Based on Liked Prompts) ---
+        function showFavoritesPage() { 
+            listingPage.style.display = 'none';
+            detailPage.style.display = 'none';
+            favoritesPage.style.display = 'block';
+            renderFavorites();
+            window.scrollTo(0, 0); 
         }
 
-        function setLikedPrompts(data) {
-            localStorage.setItem('likedPrompts', JSON.stringify(data));
+        function renderFavorites() {
+            const likedPrompts = JSON.parse(localStorage.getItem('likedPrompts') || '{}');
+            const likedIds = Object.keys(likedPrompts);
+            
+            if (likedIds.length === 0) {
+                favoritesGrid.innerHTML = `
+                    <div class="empty-favorites" style="grid-column: 1 / -1;">
+                        <i class="far fa-heart" style="font-size: 2em; margin-bottom: 15px; display: block;"></i>
+                        You haven't liked any prompts yet.<br>
+                        Click the **Heart** icon to add prompts to your favorites!
+                    </div>
+                `;
+                return;
+            }
+            
+            // Filter allPrompts to include only liked ones
+            const favoritePrompts = allPrompts.filter(prompt => likedPrompts[prompt.id]);
+            
+            // Render the liked prompts in the favoritesGrid
+            renderCards(favoritePrompts, favoritesGrid);
         }
 
-        async function likePrompt(promptId, buttonElement) {
-            let likedPrompts = getLikedPrompts();
+
+        function showDetailPage(id) {
+            const prompt = allPrompts.find(p => p.id === id); 
+            
+            if (!prompt) {
+                console.error("Prompt data not found for ID:", id);
+                return;
+            }
+
+            incrementClickCount(id); 
+
+            // Prioritize promptImageUrl (detail image). Use coverImageUrl as fallback. (FIXED)
+            const detailImageUrl = prompt.promptImageUrl || prompt.coverImageUrl;
+
+            detailPromptImage.src = detailImageUrl; 
+            detailPromptImage.onerror = function() {
+                this.onerror=null;
+                this.src='https://placehold.co/800x400/3d3d5c/ffffff?text=No+Detail+Image'; 
+            }; 
+            detailPromptImage.setAttribute('loading', 'eager');
+            detailPromptImage.setAttribute('decoding', 'async');
+            
+            detailPromptText.textContent = prompt.promptText; 
+            
+            copyButton.onclick = () => copyPrompt(prompt.promptText);
+            geminiButton.onclick = handleGeminiClick;
+
+            listingPage.style.display = 'none';
+            favoritesPage.style.display = 'none'; 
+            detailPage.style.display = 'block';
+            window.scrollTo(0, 0); 
+        }
+
+        // --- BUTTON HANDLERS ---
+        function handleGeminiClick() {
+            window.open(GEMINI_URL, '_blank');
+        }
+
+        async function likePrompt(event, promptId, buttonElement) {
+            event.stopPropagation(); 
+            
+            buttonElement.classList.remove('liked-pop');
+            
+            let likedPrompts = JSON.parse(localStorage.getItem('likedPrompts') || '{}');
             const isLiked = likedPrompts[promptId];
             
             const countElement = buttonElement.querySelector('.like-count');
             let currentCount = parseInt(countElement.textContent);
+            let updateValue = 0; 
 
             if (isLiked) {
-                return; 
+                // UNLIKE
+                updateValue = -1;
+                buttonElement.classList.remove('liked');
+                countElement.textContent = currentCount - 1;
+                delete likedPrompts[promptId];
+                showAlert("Removed from Favorites!", 'warning');
+                
             } else {
-                // LIKE ACTION: 
-                
-                // 1. Optimistic UI Update
-                const newCount = currentCount + 1;
-                countElement.textContent = newCount; 
+                // LIKE
+                updateValue = 1;
                 buttonElement.classList.add('liked'); 
-
-                likedPrompts[promptId] = true;
-                setLikedPrompts(likedPrompts);
                 
-                // 2. Persist to Firebase (Atomic Increment)
+                buttonElement.classList.add('liked-pop');
+                
+                countElement.textContent = currentCount + 1;
+                
+                likedPrompts[promptId] = true;
+                localStorage.setItem('likedPrompts', JSON.stringify(likedPrompts));
+                
+                showAlert("Added to Favorites!", 'success');
+                
+                setTimeout(() => {
+                    buttonElement.classList.remove('liked-pop');
+                }, 400); 
+            }
+            
+            localStorage.setItem('likedPrompts', JSON.stringify(likedPrompts));
+
+
+            if (updateValue !== 0) {
                 try {
                     await db.ref(`prompts/${promptId}/likes`).transaction((currentLikes) => {
-                        return (currentLikes || 0) + 1;
+                        const newLikes = (currentLikes || 0) + updateValue;
+                        return newLikes >= 0 ? newLikes : 0; 
                     });
+                    
+                    if (favoritesPage.style.display !== 'none') {
+                        renderFavorites();
+                    }
+                    
                 } catch (error) {
                     console.error("Firebase update failed:", error);
                 }
             }
         }
-
-
-        // --- CLICK TRACKING ---
+        
+        // --- CLICK COUNT LOGIC ---
         function getClickData() {
             const clicks = localStorage.getItem('promptClicks');
             return clicks ? JSON.parse(clicks) : {};
@@ -693,22 +864,17 @@
             localStorage.setItem('promptClicks', JSON.stringify(clickData));
         }
 
-        // --- DATA FETCHING & ADVANCED SORTING ---
+        // --- DATA LOADING ---
         async function renderListingPage() {
             showLoader(true);
             
             try {
+                // Fetch data from Firebase Realtime Database
                 const snapshot = await db.ref('prompts').once('value');
                 const promptsObject = snapshot.val();
                 
-                // Reset content area before rendering
-                listingPage.innerHTML = ''; 
-
                 if (!promptsObject) {
-                    listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; color:#ff6b6b; padding-top: 50px;">No prompts available yet!</p>`;
-                    // Ensure the view is set correctly even if empty
-                    listingPage.style.display = 'grid'; 
-                    detailPage.style.display = 'none'; 
+                    listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; color:#ff6b6b; padding-top: 50px;">No prompts available yet! Database is empty.</p>`;
                     return;
                 }
 
@@ -719,14 +885,13 @@
                 
                 const clickData = getClickData();
 
-                // Sort: Latest Post First (Index 0)
+                // Sorting Logic (Latest first, with a click-based trend bump)
                 allPrompts.sort((a, b) => {
                     const dateA = a.dateCreated ? new Date(a.dateCreated).getTime() : 0;
                     const dateB = b.dateCreated ? new Date(b.dateCreated).getTime() : 0;
                     return dateB - dateA; 
                 });
 
-                // Find Highest Clicked Item for Index 1 (Popularity Boost)
                 if (allPrompts.length > 1) {
                     let highestClickCount = -1;
                     let highestClickedIndex = -1;
@@ -748,75 +913,45 @@
                     }
                 }
 
-                renderCards(allPrompts); 
+                renderCards(allPrompts, listingPage); 
 
             } catch (error) {
-                console.error("Firebase Error:", error);
-                listingPage.innerHTML = '';
-                listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; color:#ff6b6b; padding-top: 50px;">Error loading data. Check console (F12) for details.<br>(${error.message})</p>`;
+                console.error("Firebase Connection Error:", error);
+                listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; color:#ff6b6b; padding-top: 50px;">🔴 ERROR: Could not connect to Firebase.<br>Please check the console for connection details.<br>(${error.message})</p>`;
             }
             
-            // Final step: Ensure the view is listing view after load
-            listingPage.style.display = 'grid';
-            detailPage.style.display = 'none';
+            showListingPage();
         }
 
-        // --- PAGE VIEW TOGGLE & COPY FUNCTIONALITY ---
-        function showListingPage() {
-            listingPage.style.display = 'grid';
-            detailPage.style.display = 'none';
-            window.scrollTo(0, 0); 
-        }
-
-        function showDetailPage(id) {
-            const prompt = allPrompts.find(p => p.id === id); 
-            
-            if (!prompt) {
-                console.error("Prompt data not found for ID:", id);
-                return;
-            }
-
-            incrementClickCount(id); 
-
-            // Set source and update loading attributes
-            detailPromptImage.src = prompt.promptImageUrl; 
-            detailPromptImage.onerror = function() { this.onerror=null;this.src='https://placehold.co/800x400/3d3d5c/ffffff?text=No+Detail+Image'; }; 
-            detailPromptImage.setAttribute('loading', 'eager');
-            detailPromptImage.setAttribute('decoding', 'async');
-            
-            detailPromptText.textContent = prompt.promptText; 
-            
-            copyButton.onclick = () => copyPrompt(prompt.promptText);
-            geminiButton.onclick = handleGeminiClick;
-
-            listingPage.style.display = 'none';
-            detailPage.style.display = 'block';
-            window.scrollTo(0, 0); 
-        }
-
-        // Base functions (no monetization logic here, handled by Popunder)
-        function handleGeminiClick() {
-            window.location.href = GEMINI_URL;
-        }
 
         async function copyPrompt(text) {
             const copyBtn = document.getElementById('copy-btn');
             
             const showCopySuccess = () => {
+                // 1. Add classes for color and animation
                 copyBtn.classList.add('copied');
+                copyBtn.classList.add('animate');
+
                 copiedAlert.style.display = 'block';
 
                 setTimeout(() => {
-                    copiedAlert.style.display = 'none';
-                    copyBtn.classList.remove('copied'); 
+                    // 2. Remove animation class first
+                    copyBtn.classList.remove('animate'); 
+                    
+                    // 3. Hide alert and remove color class after animation/visibility time
+                    setTimeout(() => {
+                        copiedAlert.style.display = 'none';
+                        copyBtn.classList.remove('copied'); 
+                    }, 200); 
                 }, 2500); 
             };
 
             const doCopy = async () => {
+                 // Check for execCommand compatibility (older browsers)
                  if (document.execCommand) {
                     const textarea = document.createElement('textarea');
                     textarea.value = text;
-                    document.body.appendChild(textarea);
+                       document.body.appendChild(textarea);
                     textarea.select();
                     try {
                         document.execCommand('copy');
@@ -828,6 +963,7 @@
                         document.body.removeChild(textarea);
                     }
                 } else {
+                    // Modern navigator.clipboard API
                     try {
                         await navigator.clipboard.writeText(text);
                         return true;
@@ -848,10 +984,9 @@
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             loadThemePreference(); 
-             renderListingPage();   
-        });
+            renderListingPage();   
+          });
         
     </script>
 </body>
-</html>;   
-    
+</html>
