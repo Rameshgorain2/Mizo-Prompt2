@@ -6,10 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <meta name="google-site-verification" content="j0bfSV86lfx9Ll_Ak0Zt180JeJ-VA_g7kWghMiIHZCo" />
-    <meta name="description" content="Mizo Prompt: The ultimate sharing platform for Gemini AI Photo Prompts. Get high-quality, creative, and searchable Gemini Prompts for free! Start exploring today." />
+    <meta name="description" content="Mizo Prompt: The ultimate sharing platform for Gemini AI Photo Prompts. Get high-quality, creative, and searchable Gemini Prompts for free. Start exploring today." />
     <title>Mizo Prompt - Gemini AI Photo Prompt Sharing Platform</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <link rel="preconnect" href="https://firebasestorage.googleapis.com">
     
@@ -30,13 +30,17 @@
             --border-radius: 12px; 
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
             --header-bg: #ffffff;
-            --ad-bg: #e9ecef; /* Used as light skeleton base */
+            --ad-bg: #e9ecef; 
             --trending-color: #ff3e6c; 
             --gemini-color: #008000; 
             --like-color-default: #808080; 
-            --like-color-liked: #ffffff; 
+            --like-color-liked: #fff; 
             --success-color: #28a745; 
             --warning-color: #ffc107;
+            --like-red: #ff3e6c;
+            /* Skeleton Color */
+            --skeleton-base: #e0e0e0;
+            --skeleton-shine: #f5f5f5;
         }
 
         /* DARK MODE - Toggle Class */
@@ -47,7 +51,10 @@
             --text-light: #d1d5db; 
             --shadow: 0 4px 15px rgba(0, 0, 0, 0.4); 
             --header-bg: #374151;
-            --ad-bg: #4b5563; /* Used as dark skeleton base */
+            --ad-bg: #4b5563; 
+            /* Skeleton Dark Mode */
+            --skeleton-base: #4b5563;
+            --skeleton-shine: #6b7280;
         }
 
         * {
@@ -82,6 +89,7 @@
             color: var(--primary-color);
             font-weight: 800; 
             letter-spacing: -0.5px;
+            cursor: pointer;
         }
 
         .controls {
@@ -155,13 +163,13 @@
         }
 
 
-        /* --- CARD LAYOUT (MOBILE DEFAULT) --- */
+        /* --- CARD LAYOUT --- */
         .container {
             max-width: 1200px;
             margin: 20px auto 30px auto; 
             padding: 0 20px;
         }
-        #listing-page, #favorites-grid {
+        #listing-page, #favorites-grid, #profile-posts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
             gap: 30px;
@@ -169,25 +177,96 @@
             min-height: 50vh; 
         }
         
-        /* Fixed Card Height for consistency (Mobile/Tablet) */
-        .prompt-card, .skeleton-card-container {
+        .prompt-card {
             background-color: var(--card-bg);
             border-radius: var(--border-radius);
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s, opacity 0.5s; /* Added opacity for smooth fade in */
             box-shadow: var(--shadow); 
             position: relative; 
             display: flex;
             flex-direction: column;
             height: 350px; 
+            opacity: 0; /* Hidden initially for fade in */
+        }
+        .prompt-card.loaded {
+            opacity: 1; /* Show when rendered */
         }
         .prompt-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 10px 25px rgba(0, 123, 255, 0.15); 
         }
         
-        /* --- TRENDING LABEL FIX --- */
+        /* --- SKELETON LOADING UI (Unique Style) --- */
+        @keyframes loading-shine {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .skeleton-card-container {
+            height: 350px; 
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        
+        .skeleton-box {
+            background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-shine) 50%, var(--skeleton-base) 75%);
+            background-size: 200% 100%;
+            animation: loading-shine 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        .skeleton-image {
+            width: 100%;
+            height: 200px; 
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .skeleton-content {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .skeleton-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .skeleton-title-long { height: 16px; width: 80%; }
+        .skeleton-title-short { height: 16px; width: 60%; margin-top: 5px; }
+        .skeleton-like-button { height: 30px; width: 50px; border-radius: 50px; align-self: center; } 
+
+        .skeleton-author-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05); 
+        }
+
+        .skeleton-author-logo {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+        }
+
+        .skeleton-author-name {
+            height: 14px;
+            width: 40%;
+        }
+        
+        .skeleton-date-line { height: 12px; width: 30%; }
+        /* --- END SKELETON UI --- */
+
+
+        /* --- TRENDING LABEL --- */
         .trending-label {
             position: absolute;
             top: 0;
@@ -204,7 +283,7 @@
 
         .card-image img {
             width: 100%;
-            height: 200px; /* Default Image Height */
+            height: 200px; 
             object-fit: cover;
             display: block;
         }
@@ -239,6 +318,64 @@
             margin-bottom: 5px; 
         }
         
+        /* --- LIKE BUTTON STYLES (Fixed) --- */
+        .like-button {
+            background: none;
+            border: none;
+            color: var(--like-color-default);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 5px 8px;
+            border-radius: 50%;
+            transition: color 0.3s, transform 0.2s, background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 600;
+        }
+        .like-button .fa-heart {
+            font-size: 1.1rem;
+        }
+
+        .like-button .fas {
+            display: none; 
+            color: var(--like-color-liked);
+        }
+        .like-button .far {
+            display: block;
+            color: var(--like-red);
+        }
+
+        .like-button.liked {
+            background-color: var(--like-red); 
+            color: var(--like-color-liked); 
+            border-radius: 50px; 
+            padding: 5px 10px;
+        }
+
+        .like-button.liked .far {
+            display: none;
+        }
+        .like-button.liked .fas {
+            display: block; 
+        }
+        
+        .like-button.liked-pop {
+            animation: pop 0.4s ease-out;
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .like-count {
+            font-size: 0.9rem;
+            color: inherit;
+        }
+        /* --- END LIKE BUTTON STYLES --- */
+
+
         /* --- AUTHOR INFO STYLES --- */
         .author-info {
             display: flex;
@@ -246,6 +383,10 @@
             margin-bottom: 10px; 
             padding-bottom: 5px;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05); 
+            cursor: pointer; 
+        }
+        .author-info:hover {
+            opacity: 0.8;
         }
 
         .author-logo {
@@ -255,7 +396,7 @@
             object-fit: cover;
             margin-right: 8px;
             border: 1px solid var(--text-light);
-            flex-shrink: 0; /* Important for alignment */
+            flex-shrink: 0; 
         }
 
         .author-name-wrapper {
@@ -271,7 +412,7 @@
             width: 14px;
             height: 14px;
             margin-left: 5px;
-            flex-shrink: 0; /* Important for alignment */
+            flex-shrink: 0; 
         }
         /* --- END AUTHOR INFO STYLES --- */
 
@@ -281,186 +422,8 @@
             color: var(--text-light);
             margin-top: 0; 
         }
-
-        /* --- LIKE BUTTON STYLES --- */
-        @keyframes like-pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        .like-button {
-            background-color: var(--card-bg); 
-            border: 1px solid var(--text-light);
-            color: var(--text-light); 
-            padding: 5px 10px;
-            border-radius: 18px; 
-            font-size: 0.8rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            min-width: 65px;
-            justify-content: center;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s, transform 0.1s; 
-        }
         
-        .like-button .fas {
-             display: none; 
-             color: var(--like-color-liked); 
-        }
-        
-        .like-button .far {
-             display: inline-block; 
-             color: var(--text-light); 
-        }
-
-        /* LIKED State */
-        .like-button.liked {
-            background-color: var(--trending-color); 
-            border-color: var(--trending-color); 
-            color: var(--like-color-liked); 
-        }
-        
-        .like-button.liked .fas {
-            display: inline-block; 
-        }
-        
-        .like-button.liked .far {
-            display: none; 
-        }
-
-        /* Animation Trigger */
-        .like-button.liked-pop {
-            animation: like-pop 0.4s ease-out; 
-        }
-        /* --- END OF LIKE BUTTON STYLES --- */
-
-        /* --- SKELETON ANIMATION STYLES (REFINED) --- */
-        @keyframes shimmer {
-            0% { background-position: -800px 0; }
-            100% { background-position: 800px 0; }
-        }
-
-        .skeleton-box {
-            background-color: var(--ad-bg); 
-            background: linear-gradient(to right, 
-                var(--ad-bg) 0%, 
-                #f0f0f0 20%, 
-                var(--ad-bg) 40%, 
-                var(--ad-bg) 100%);
-            background-size: 800px 100%; 
-            border-radius: 4px; 
-            position: relative;
-            overflow: hidden; 
-            animation: shimmer 1.5s infinite linear;
-        }
-
-        body.dark-mode .skeleton-box {
-            background: linear-gradient(to right, 
-                #374151 0%, 
-                #4b5563 20%, 
-                #374151 40%, 
-                #374151 100%);
-        }
-
-        .skeleton-card-container {
-            background-color: var(--card-bg); 
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow); 
-            overflow: hidden;
-            height: 350px; 
-            display: flex;
-            flex-direction: column;
-        }
-
-        .skeleton-image {
-            width: 100%;
-            height: 200px; 
-            border-radius: 0; 
-        }
-
-        .skeleton-content {
-            padding: 15px; 
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .skeleton-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start; 
-        }
-
-        /* Specific component shapes */
-        .skeleton-title-long {
-            width: 90%; 
-            height: 16px; 
-            margin-bottom: 4px;
-        }
-
-        .skeleton-title-short {
-            width: 75%; 
-            height: 16px; 
-        }
-
-        /* SKELETON AUTHOR INFO */
-        .skeleton-author-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .skeleton-author-logo {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .skeleton-author-name {
-            width: 50%;
-            height: 14px;
-        }
-        /* END SKELETON AUTHOR INFO */
-
-        .skeleton-date-line {
-            width: 40%; 
-            height: 10px;
-            margin-top: 5px; 
-            border-radius: 2px;
-        }
-
-        .skeleton-like-button {
-            width: 70px; 
-            height: 28px;
-            border-radius: 18px;
-        }
-        /* --- END OF SKELETON STYLES --- */
-
-
-        /* --- ALERT MESSAGE STYLES --- */
-        .alert-message {
-            position: fixed;
-              top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--success-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            z-index: 200;
-            display: none;
-            transition: opacity 0.3s;
-            font-weight: 600;
-        }
-
-        /* --- DETAIL PAGE STYLES (CRITICAL UPDATE HERE) --- */
+        /* --- DETAIL PAGE STYLES --- */
         #detail-page {
             max-width: 900px;
             margin: 20px auto;
@@ -469,7 +432,6 @@
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
         }
-
         .back-button {
             background: none;
             border: none;
@@ -485,33 +447,35 @@
             color: var(--primary-color);
         }
 
-        /* FIX 1: Make container take full width and let image define height */
         .detail-image-container {
             width: 100%;
-            max-width: 100%; /* Ensure it respects parent width */
+            max-width: 100%; 
             overflow: hidden;
             border-radius: var(--border-radius);
             margin-bottom: 25px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        /* FIX 2: Ensure image scales down but maintains aspect ratio without cutting */
         #detail-prompt-image {
             width: 100%;
-            /* Removed height: 100% and object-fit: cover; */
             height: auto; 
-            object-fit: contain; /* Not strictly needed, but good practice */
+            object-fit: contain; 
             display: block;
         }
 
         .detail-info-header {
             margin-bottom: 20px;
         }
-
         .detail-info-header h2 {
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 10px;
+        }
+        /* Detail page specific author info */
+        #detail-page .author-info {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
         }
 
         .prompt-text-box {
@@ -521,15 +485,12 @@
             margin-bottom: 25px;
             border-left: 5px solid var(--primary-color); 
         }
-
         #detail-prompt-text {
             font-size: 1.1rem;
             color: var(--text-color);
             white-space: pre-wrap; 
             word-break: break-word;
         }
-        
-        /* --- BUTTONS WRAPPER FOR CENTERING --- */
         .detail-buttons {
             display: flex;
             justify-content: center; 
@@ -539,97 +500,203 @@
             margin-top: 25px; 
         }
 
-        /* --- BUTTON UI OVERHAUL & ANIMATION --- */
-        @keyframes shake-x {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-4px); }
-            40%, 80% { transform: translateX(4px); }
-        }
-
-        .copy-button, #gemini-btn {
+        .detail-buttons button {
             padding: 12px 25px;
-            font-size: 1rem;
-            font-weight: 600;
+            border-radius: 50px;
             border: none;
-            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
+            transition: transform 0.2s, opacity 0.2s;
+            display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .copy-button {
-            background-color: var(--primary-color);
-            color: var(--card-bg); 
+            font-size: 1rem;
         }
         
-        /* Unique Hover Animation */
-        .copy-button:hover, #gemini-btn:hover {
+        .detail-buttons button:hover {
             opacity: 0.9;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-            animation: shake-x 0.5s; 
+            transform: translateY(-1px);
         }
 
-        .copy-button.copied {
-            background-color: var(--success-color); 
-            pointer-events: none;
+        /* Copy Button (Fixed UI) */
+        #copy-btn {
+            background-color: var(--primary-color); 
+            color: white;
         }
-
+        
+        /* Gemini Button (Fixed UI) */
         #gemini-btn {
             background-color: var(--gemini-color); 
-            color: var(--card-bg);
+            color: white;
+        }
+        
+        /* Copied State for Copy Button */
+        #copy-btn.copied {
+            background-color: var(--success-color);
+        }
+        
+        /* --- END OF DETAIL PAGE STYLES --- */
+
+        /* --- ALERT MESSAGES --- */
+        .alert-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: none; 
+            font-weight: 600;
         }
 
+        #copied-alert {
+            background-color: var(--success-color);
+            color: white;
+            padding: 12px 25px;
+        }
+
+        /* --- PROFILE PAGE STYLES --- */
+        #profile-page {
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .profile-header {
+            background-color: var(--text-color); 
+            color: white;
+            padding: 30px 20px 20px 20px; 
+            text-align: center;
+            position: relative;
+        }
+        body.dark-mode .profile-header {
+            background-color: #111827;
+        }
+
+        .profile-pic-container {
+            /* FIX: Centered the image better, 50% overlap */
+            position: absolute;
+            top: 50px; 
+            left: 50%;
+            transform: translate(-50%, -50%); 
+            width: 100px; 
+            height: 100px; 
+            border-radius: 50%;
+            border: 4px solid var(--secondary-color); 
+            overflow: hidden;
+            box-shadow: 0 0 0 5px var(--header-bg);
+            z-index: 10;
+        }
+        /* Mobile adjustment for Profile Pic container */
+        @media (max-width: 767px) {
+            .profile-pic-container {
+                top: 30px; 
+                width: 80px; 
+                height: 80px;
+            }
+        }
+        
+        #profile-pic {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-name-section {
+            padding-top: 60px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        #profile-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .profile-name-section .verified-icon {
+            width: 18px;
+            height: 18px;
+            margin-left: 0;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: var(--header-bg); 
+            color: var(--text-color);
+            box-shadow: 0 4px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            padding: 0 5px;
+        }
+        
+        .stat-item strong {
+            display: block;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 3px;
+        }
+
+        .stat-item span {
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-light); 
+        }
+        
+        .profile-content {
+            padding: 20px;
+        }
+        
+        .profile-content h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: center;
+            padding: 15px 0;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        /* --- END OF PROFILE PAGE STYLES --- */
 
         
-        /* 🖥️ DESKTOP OPTIMIZATION (Media Query - 4-COLUMN FIX) */
+   /* 🖥️ DESKTOP OPTIMIZATION */
         @media (min-width: 992px) {
-            
-            /* 1. CONTAINER WIDTH */
             .container {
                 max-width: 1400px; 
                 padding: 0 30px;
             }
-            
-            /* 2. CARD GRID LAYOUT (4 cards per row) */
-            #listing-page, #favorites-grid {
+            #listing-page, #favorites-grid, #profile-posts-grid {
                 grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
                 gap: 40px; 
                 padding-top: 20px;
             }
-
-            /* 3. CARD SIZE FIXES */
             .prompt-card, .skeleton-card-container {
                 height: 380px; 
             }
-            
             .card-image img, .skeleton-image {
                 height: 220px; 
             }
-
-            .card-content {
-                padding: 20px; 
-            }
-            
-            .card-content h2 {
-                font-size: 1.15rem; 
-            }
-
-            /* 4. DETAIL PAGE FIXES */
-            #detail-page {
+            #detail-page, #profile-page {
                 max-width: 1000px; 
                 padding: 40px;
-            }
-            
-            .detail-image-container {
-                /* max-height removed, now depends on image content */
-            }
-
-            /* 5. SEARCH BAR EXPANSION */
-            .search-input.expanded {
-                width: 350px; 
             }
         }
         
@@ -640,7 +707,7 @@
     <div id="progress-bar"></div> 
 
     <header>
-        <h1>Mizo Prompt</h1>
+        <h1 onclick="showListingPage()">Mizo Prompt</h1>
    <div class="controls">
             <button class="favorites-button" onclick="showFavoritesPage()">
                 <i class="fas fa-heart"></i>
@@ -711,7 +778,45 @@
                 </div>
         </div>
 
-        <div id="copied-alert" class="alert-message">Prompt Copied!</div>
+        <div id="profile-page" style="display:none;">
+            <button class="back-button" onclick="showListingPage()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to Gallery</button>
+
+            <div class="profile-header">
+                <div class="profile-pic-container">
+                    <img id="profile-pic" src="" alt="Profile Picture">
+                </div>
+
+                <div class="profile-name-section">
+                    <span id="profile-name">Ramesh Gorain</span>
+                    <img id="profile-verified-icon" src="" alt="Verified" class="verified-icon">
+                </div>
+            </div>
+            
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <strong id="total-posts-count">0</strong>
+                    <span>Total Posts</span>
+                </div>
+                <div class="stat-item">
+                    <strong id="followers-count">0</strong>
+                    <span>Followers</span>
+                </div>
+                <div class="stat-item">
+                    <strong id="likes-count">0</strong>
+                    <span>Total Posts Like</span>
+                </div>
+            </div>
+
+            <div class="profile-content">
+                <h3>Posted</h3>
+                <div id="profile-posts-grid" class="prompt-grid">
+                    </div>
+            </div>
+
+        </div>
+
+
+        <div id="copied-alert" class="alert-message" style="display: none;">Prompt Copied!</div>
         <div id="app-alert" class="alert-message"></div>
     </div>
     
@@ -719,7 +824,7 @@
         // 🔗 SMART LINK CONFIGURATION
         const SMARTLINK = "https://www.effectivegatecpm.com/mq4a9wpw?key=09c76e50df431d708d97ca6c1876abc4";
 
-        // 🚀 ADVANCED POPUNDER LOGIC: Smart Link on every 1st, 3rd, 5th click (Odd clicks)
+        // 🚀 ADVANCED POPUNDER LOGIC
         function getClickCount() {
             return parseInt(localStorage.getItem('userClickCount') || '0');
         }
@@ -745,10 +850,11 @@
         
         /* --- JAVASCRIPT LOGIC (Website Functionality) --- */
 
-        // --- AUTHOR CONSTANTS (NEW) ---
+        // --- AUTHOR CONSTANTS (MOCK) ---
         const DEFAULT_AUTHOR_NAME = "Ramesh Gorain";
         const DEFAULT_AUTHOR_LOGO = "https://i.ibb.co/Gm4f6W4/Picsart-25-12-04-06-31-31-727.webp";
         const DEFAULT_VERIFIED_ICON = "https://i.ibb.co/TMPHwgGp/Picsart-25-12-04-06-32-14-489.webp";
+        const CURRENT_AUTHOR_KEY = 'ramesh_gorain'; 
         // -------------------------------
         
         // 1. FIREBASE CONFIGURATION & INITIALIZATION
@@ -769,8 +875,9 @@
         const listingPage = document.getElementById('listing-page');
         const detailPage = document.getElementById('detail-page');
         const favoritesPage = document.getElementById('favorites-page'); 
-        const favoritesGrid = document.getElementById('favorites-grid'); 
-        const detailPromptTitle = document.getElementById('detail-prompt-title'); // NEW
+        const profilePage = document.getElementById('profile-page');
+        const profilePostsGrid = document.getElementById('profile-posts-grid');
+        const detailPromptTitle = document.getElementById('detail-prompt-title'); 
         const detailPromptImage = document.getElementById('detail-prompt-image');
         const detailPromptText = document.getElementById('detail-prompt-text');
         const copyButton = document.getElementById('copy-btn');
@@ -837,14 +944,14 @@
             if (allPrompts.length === 0) return;
 
             const filteredPrompts = allPrompts.filter(prompt => {
-                  const titleMatch = prompt.title.toLowerCase().includes(term);
+                const titleMatch = prompt.title.toLowerCase().includes(term);
                 const promptMatch = prompt.promptText ? prompt.promptText.toLowerCase().includes(term) : false;
                 return titleMatch || promptMatch;
             });
             renderCards(filteredPrompts); 
         }
 
-        // 🎯 DYNAMIC LOADER 
+        // 🎯 DYNAMIC LOADER (Skeleton Code Added)
         function showLoader(show, count = 8) { 
             listingPage.innerHTML = ''; 
             setProgress(0); 
@@ -852,7 +959,8 @@
             if (show) {
                 listingPage.style.display = 'grid'; 
                 detailPage.style.display = 'none'; 
-                favoritesPage.style.display = 'none'; 
+                favoritesPage.style.display = 'none';
+                profilePage.style.display = 'none'; 
                 setProgress(30); 
 
                 for (let i = 0; i < count; i++) {
@@ -926,7 +1034,8 @@
         }
 
         // --- COMMON AUTHOR HTML GENERATION ---
-        function getAuthorHtml() {
+        function getAuthorHtml(authorKey) {
+            // For now, only Ramesh is supported
             const authorName = DEFAULT_AUTHOR_NAME;
             const authorLogo = DEFAULT_AUTHOR_LOGO;
             const verifiedIcon = DEFAULT_VERIFIED_ICON;
@@ -934,7 +1043,7 @@
             const verifiedTag = `<img src="${verifiedIcon}" alt="Verified" class="verified-icon">`;
 
             return `
-                <div class="author-info">
+                <div class="author-info" onclick="showProfilePage('${authorKey}')">
                     <img src="${authorLogo}" alt="Author Logo" class="author-logo">
                     <div class="author-name-wrapper">
                         ${authorName} ${verifiedTag}
@@ -943,20 +1052,26 @@
             `;
         }
         
-        // --- RENDERING FUNCTIONS (UPDATED for Author Info) ---
+        // --- RENDERING FUNCTIONS ---
         function createPromptCard(prompt, isTrending, likedPrompts) {
             const card = document.createElement('div');
             card.className = 'prompt-card';
             card.onclick = (e) => {
-                if (!e.target.closest('.like-button')) {
+                if (!e.target.closest('.like-button') && !e.target.closest('.author-info')) {
                     showDetailPage(prompt.id);
                 }
             }; 
             
+            // Add a small delay for the fade-in effect
+            setTimeout(() => {
+                card.classList.add('loaded');
+            }, 50);
+
             const trendingLabel = isTrending ? '<div class="trending-label">TRENDING 🔥</div>' : '';
             const isLiked = likedPrompts[prompt.id];
 
-            const authorHtml = getAuthorHtml();
+            const authorKey = CURRENT_AUTHOR_KEY; 
+               const authorHtml = getAuthorHtml(authorKey);
 
             card.innerHTML = `
                 ${trendingLabel}
@@ -998,18 +1113,23 @@
         }
         
         // --- PAGE VIEW TOGGLE & NAVIGATION ---
-        function showListingPage() {
-            listingPage.style.display = 'grid';
-             detailPage.style.display = 'none';
+        function hideAllPages() {
+            listingPage.style.display = 'none';
+            detailPage.style.display = 'none';
             favoritesPage.style.display = 'none'; 
+            profilePage.style.display = 'none'; 
+            searchInput.classList.remove('expanded');
+        }
+
+        function showListingPage() {
+            hideAllPages();
+            listingPage.style.display = 'grid';
             window.scrollTo(0, 0); 
             setProgress(0); 
         }
-        
-        // --- FAVORITES PAGE LOGIC (Based on Liked Prompts) ---
+
         function showFavoritesPage() { 
-            listingPage.style.display = 'none';
-            detailPage.style.display = 'none';
+            hideAllPages();
             favoritesPage.style.display = 'block';
             renderFavorites();
             window.scrollTo(0, 0); 
@@ -1020,7 +1140,7 @@
             const likedIds = Object.keys(likedPrompts);
             
             if (likedIds.length === 0) {
-                favoritesGrid.innerHTML = `
+                document.getElementById('favorites-grid').innerHTML = `
                     <div class="empty-favorites" style="grid-column: 1 / -1;">
                         <i class="far fa-heart" style="font-size: 2em; margin-bottom: 15px; display: block;"></i>
                         You haven't liked any prompts yet.<br>
@@ -1031,30 +1151,30 @@
             }
             
             const favoritePrompts = allPrompts.filter(prompt => likedPrompts[prompt.id]);
-            renderCards(favoritePrompts, favoritesGrid);
+            renderCards(favoritePrompts, document.getElementById('favorites-grid'));
         }
-
-        // --- DETAIL PAGE LOGIC (UPDATED for Author Info and Title) ---
+        
         function showDetailPage(id) {
+            hideAllPages();
             const prompt = allPrompts.find(p => p.id === id); 
             
             if (!prompt) {
-                console.error("Prompt data not found for ID:", id);
+                showAlert("Prompt not found!", 'error');
+                showListingPage();
                 return;
             }
+            
+            incrementClickCount(id);
 
-            incrementClickCount(id); 
-
-            // Inject Title
+            // Inject Title and Author Info
             detailPromptTitle.textContent = prompt.title;
-
-            // Inject Author Info below the title (FIX 2)
             const detailInfoHeader = detailPage.querySelector('.detail-info-header');
             let existingAuthor = detailInfoHeader.querySelector('.author-info');
             if (existingAuthor) {
                 existingAuthor.remove();
             }
-            detailInfoHeader.insertAdjacentHTML('beforeend', getAuthorHtml()); 
+            // Use CURRENT_AUTHOR_KEY as a placeholder for now
+            detailInfoHeader.insertAdjacentHTML('beforeend', getAuthorHtml(CURRENT_AUTHOR_KEY)); 
             
             // Image Fix: Get the correct image URL
             const detailImageUrl = prompt.promptImageUrl || prompt.coverImageUrl;
@@ -1072,10 +1192,36 @@
             copyButton.onclick = () => copyPrompt(prompt.promptText);
             geminiButton.onclick = handleGeminiClick;
 
-            listingPage.style.display = 'none';
-            favoritesPage.style.display = 'none'; 
             detailPage.style.display = 'block';
               window.scrollTo(0, 0); 
+        }
+
+
+        function showProfilePage(authorKey) { 
+            hideAllPages();
+            profilePage.style.display = 'block';
+            window.scrollTo(0, 0);
+            
+            // ** 1. Set Profile Header Data **
+            document.getElementById('profile-pic').src = DEFAULT_AUTHOR_LOGO;
+            document.getElementById('profile-verified-icon').src = DEFAULT_VERIFIED_ICON;
+            document.getElementById('profile-name').textContent = DEFAULT_AUTHOR_NAME;
+            
+            // Filter posts for this author (For now, all posts are Ramesh's)
+            const authorPosts = allPrompts; 
+
+            // ** 2. Calculate Stats **
+            const totalPosts = authorPosts.length;
+            const totalLikes = authorPosts.reduce((sum, prompt) => sum + (prompt.likes || 0), 0);
+            const totalFollowers = 0; // Static for now
+
+            // Display Stats
+            document.getElementById('total-posts-count').textContent = totalPosts;
+            document.getElementById('followers-count').textContent = totalFollowers;
+            document.getElementById('likes-count').textContent = totalLikes;
+            
+            // ** 3. Render Posted Prompts **
+            renderCards(authorPosts, profilePostsGrid);
         }
 
         // --- BUTTON HANDLERS ---
@@ -1136,6 +1282,10 @@
                         renderFavorites();
                     }
                     
+                    if (profilePage.style.display !== 'none') {
+                         showProfilePage(CURRENT_AUTHOR_KEY); 
+                    }
+                    
                 } catch (error) {
                     console.error("Firebase update failed:", error);
                 }
@@ -1179,7 +1329,7 @@
                 
                 const clickData = getClickData();
 
-                // Sorting Logic (Latest first, with a click-based trend bump)
+                // Sorting Logic 
                 allPrompts.sort((a, b) => {
                     const dateA = a.dateCreated ? new Date(a.dateCreated).getTime() : 0;
                     const dateB = b.dateCreated ? new Date(b.dateCreated).getTime() : 0;
@@ -1221,7 +1371,7 @@
             showListingPage();
         }
 
-
+        // --- COPY PROMPT FUNCTION (Fixed to only show alert on copy) ---
         async function copyPrompt(text) {
             const copyBtn = document.getElementById('copy-btn');
             
@@ -1229,20 +1379,29 @@
                 copyBtn.classList.add('copied');
                 copyBtn.classList.add('animate');
 
-                copiedAlert.style.display = 'block';
+                copiedAlert.style.display = 'block'; 
 
                 setTimeout(() => {
                     copyBtn.classList.remove('animate'); 
                     
                     setTimeout(() => {
-                        copiedAlert.style.display = 'none';
+                        copiedAlert.style.display = 'none'; 
                         copyBtn.classList.remove('copied'); 
                     }, 200); 
                 }, 2500); 
             };
 
             const doCopy = async () => {
-                 if (document.execCommand) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        return true;
+                    } catch (err) {
+                        console.error('Clipboard API copy failed, falling back:', err);
+                    }
+                }
+                
+                if (document.execCommand) {
                     const textarea = document.createElement('textarea');
                     textarea.value = text;
                        document.body.appendChild(textarea);
@@ -1256,21 +1415,16 @@
                     } finally {
                         document.body.removeChild(textarea);
                     }
-                } else {
-                    try {
-                        await navigator.clipboard.writeText(text);
-                        return true;
-                    } catch (err) {
-                        console.error('Copy failed:', err);
-                        return false;
-                    }
                 }
+                return false; 
             }
 
             const copySuccessful = await doCopy();
 
             if (copySuccessful) {
                 showCopySuccess();
+            } else {
+                showAlert("Copy Failed! Try manually.", 'error', 3000);
             }
         }
 
@@ -1283,4 +1437,5 @@
     </script>
 </body>
 </html>
+
             
