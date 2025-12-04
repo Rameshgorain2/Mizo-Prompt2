@@ -180,7 +180,7 @@
             position: relative; 
             display: flex;
             flex-direction: column;
-            height: 350px; /* Increased height to accommodate author info */
+            height: 350px; 
         }
         .prompt-card:hover {
             transform: translateY(-3px);
@@ -236,16 +236,16 @@
             line-height: 1.4;
             height: 2.8em; 
             margin-right: 10px; 
-            margin-bottom: 5px; /* Added small margin */
+            margin-bottom: 5px; 
         }
         
-        /* --- NEW AUTHOR INFO STYLES --- */
+        /* --- AUTHOR INFO STYLES --- */
         .author-info {
             display: flex;
             align-items: center;
-            margin-bottom: 10px; /* Gap between author and date */
+            margin-bottom: 10px; 
             padding-bottom: 5px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* Subtle separator */
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05); 
         }
 
         .author-logo {
@@ -255,6 +255,7 @@
             object-fit: cover;
             margin-right: 8px;
             border: 1px solid var(--text-light);
+            flex-shrink: 0; /* Important for alignment */
         }
 
         .author-name-wrapper {
@@ -263,14 +264,16 @@
             font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-color);
+            line-height: 1;
         }
 
         .verified-icon {
             width: 14px;
             height: 14px;
             margin-left: 5px;
+            flex-shrink: 0; /* Important for alignment */
         }
-        /* --- END NEW AUTHOR INFO STYLES --- */
+        /* --- END AUTHOR INFO STYLES --- */
 
 
         .card-content p {
@@ -366,7 +369,7 @@
             border-radius: var(--border-radius);
             box-shadow: var(--shadow); 
             overflow: hidden;
-            height: 350px; /* Matched with card height */
+            height: 350px; 
             display: flex;
             flex-direction: column;
         }
@@ -388,7 +391,7 @@
         .skeleton-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start; /* Aligned with title */
+            align-items: flex-start; 
         }
 
         /* Specific component shapes */
@@ -403,7 +406,7 @@
             height: 16px; 
         }
 
-        /* NEW SKELETON AUTHOR INFO */
+        /* SKELETON AUTHOR INFO */
         .skeleton-author-info {
             display: flex;
             align-items: center;
@@ -414,7 +417,7 @@
 
         .skeleton-author-logo {
             width: 25px;
-                height: 25px;
+            height: 25px;
             border-radius: 50%;
             margin-right: 8px;
         }
@@ -423,12 +426,12 @@
             width: 50%;
             height: 14px;
         }
-        /* END NEW SKELETON AUTHOR INFO */
+        /* END SKELETON AUTHOR INFO */
 
         .skeleton-date-line {
             width: 40%; 
             height: 10px;
-            margin-top: 5px; /* Adjusted margin */
+            margin-top: 5px; 
             border-radius: 2px;
         }
 
@@ -443,7 +446,7 @@
         /* --- ALERT MESSAGE STYLES --- */
         .alert-message {
             position: fixed;
-            top: 100px;
+              top: 100px;
             left: 50%;
             transform: translateX(-50%);
             background-color: var(--success-color);
@@ -457,7 +460,7 @@
             font-weight: 600;
         }
 
-        /* --- DETAIL PAGE STYLES (UPDATED) --- */
+        /* --- DETAIL PAGE STYLES (CRITICAL UPDATE HERE) --- */
         #detail-page {
             max-width: 900px;
             margin: 20px auto;
@@ -482,20 +485,33 @@
             color: var(--primary-color);
         }
 
+        /* FIX 1: Make container take full width and let image define height */
         .detail-image-container {
             width: 100%;
-            max-height: 450px; 
+            max-width: 100%; /* Ensure it respects parent width */
             overflow: hidden;
             border-radius: var(--border-radius);
             margin-bottom: 25px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
+        /* FIX 2: Ensure image scales down but maintains aspect ratio without cutting */
         #detail-prompt-image {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
+            /* Removed height: 100% and object-fit: cover; */
+            height: auto; 
+            object-fit: contain; /* Not strictly needed, but good practice */
             display: block;
+        }
+
+        .detail-info-header {
+            margin-bottom: 20px;
+        }
+
+        .detail-info-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
         }
 
         .prompt-text-box {
@@ -586,7 +602,7 @@
 
             /* 3. CARD SIZE FIXES */
             .prompt-card, .skeleton-card-container {
-                height: 380px; /* Adjusted height for desktop */
+                height: 380px; 
             }
             
             .card-image img, .skeleton-image {
@@ -608,7 +624,7 @@
             }
             
             .detail-image-container {
-                max-height: 550px; 
+                /* max-height removed, now depends on image content */
             }
 
             /* 5. SEARCH BAR EXPANSION */
@@ -663,6 +679,10 @@
             <button class="back-button" onclick="showListingPage()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Back to Gallery</button>
             
             <div class="detail-content"> 
+                
+                <div class="detail-info-header">
+                    <h2 id="detail-prompt-title">Loading Title...</h2>
+                     </div>
                 
                 <div class="detail-image-container"> 
                     <img id="detail-prompt-image" src="" alt="AI Generated Image" loading="eager" decoding="async">
@@ -750,6 +770,7 @@
         const detailPage = document.getElementById('detail-page');
         const favoritesPage = document.getElementById('favorites-page'); 
         const favoritesGrid = document.getElementById('favorites-grid'); 
+        const detailPromptTitle = document.getElementById('detail-prompt-title'); // NEW
         const detailPromptImage = document.getElementById('detail-prompt-image');
         const detailPromptText = document.getElementById('detail-prompt-text');
         const copyButton = document.getElementById('copy-btn');
@@ -816,14 +837,14 @@
             if (allPrompts.length === 0) return;
 
             const filteredPrompts = allPrompts.filter(prompt => {
-                const titleMatch = prompt.title.toLowerCase().includes(term);
+                  const titleMatch = prompt.title.toLowerCase().includes(term);
                 const promptMatch = prompt.promptText ? prompt.promptText.toLowerCase().includes(term) : false;
-                  return titleMatch || promptMatch;
+                return titleMatch || promptMatch;
             });
             renderCards(filteredPrompts); 
         }
 
-        // 🎯 DYNAMIC LOADER (Skeleton Loading - REFINED FOR AUTHOR)
+        // 🎯 DYNAMIC LOADER 
         function showLoader(show, count = 8) { 
             listingPage.innerHTML = ''; 
             setProgress(0); 
@@ -872,7 +893,7 @@
                     headerRow.appendChild(titleBox);
                     headerRow.appendChild(likePlaceholder);
                     
-                    // NEW: Author Info Skeleton
+                    // Author Info Skeleton
                     const authorInfoSkeleton = document.createElement('div');
                     authorInfoSkeleton.className = 'skeleton-author-info';
 
@@ -886,7 +907,6 @@
 
                     authorInfoSkeleton.appendChild(logoSkeleton);
                     authorInfoSkeleton.appendChild(nameSkeleton);
-                    // END NEW SKELETON
 
                     // Date Line
                     const dateLine = document.createElement('div');
@@ -894,7 +914,7 @@
                     dateLine.style.animationDelay = `${i * 0.05 + 0.6}s`;
                     
                     contentDiv.appendChild(headerRow);
-                    contentDiv.appendChild(authorInfoSkeleton); // Add Author Skeleton
+                    contentDiv.appendChild(authorInfoSkeleton); 
                     contentDiv.appendChild(dateLine);
                     
                     card.appendChild(imagePlaceholder);
@@ -903,6 +923,24 @@
                     listingPage.appendChild(card);
                 }
             } 
+        }
+
+        // --- COMMON AUTHOR HTML GENERATION ---
+        function getAuthorHtml() {
+            const authorName = DEFAULT_AUTHOR_NAME;
+            const authorLogo = DEFAULT_AUTHOR_LOGO;
+            const verifiedIcon = DEFAULT_VERIFIED_ICON;
+            
+            const verifiedTag = `<img src="${verifiedIcon}" alt="Verified" class="verified-icon">`;
+
+            return `
+                <div class="author-info">
+                    <img src="${authorLogo}" alt="Author Logo" class="author-logo">
+                    <div class="author-name-wrapper">
+                        ${authorName} ${verifiedTag}
+                    </div>
+                </div>
+            `;
         }
         
         // --- RENDERING FUNCTIONS (UPDATED for Author Info) ---
@@ -918,32 +956,7 @@
             const trendingLabel = isTrending ? '<div class="trending-label">TRENDING 🔥</div>' : '';
             const isLiked = likedPrompts[prompt.id];
 
-            // --- AUTHOR HTML CONSTRUCTION (NEW) ---
-            const authorName = DEFAULT_AUTHOR_NAME;
-            const authorLogo = DEFAULT_AUTHOR_LOGO;
-            const verifiedIcon = DEFAULT_VERIFIED_ICON;
-            
-            // Check if prompt has an author field and use that if available in future
-            /* const authorData = prompt.author || {};
-            const authorName = authorData.name || DEFAULT_AUTHOR_NAME;
-            const authorLogo = authorData.logo || DEFAULT_AUTHOR_LOGO;
-            const isVerified = authorData.isVerified || true; 
-            const verifiedTag = isVerified ? `<img src="${verifiedIcon}" alt="Verified" class="verified-icon">` : '';
-            */
-           
-            const verifiedTag = `<img src="${verifiedIcon}" alt="Verified" class="verified-icon">`;
-
-
-            const authorHtml = `
-                <div class="author-info">
-                    <img src="${authorLogo}" alt="Author Logo" class="author-logo">
-                    <div class="author-name-wrapper">
-                        ${authorName} ${verifiedTag}
-                    </div>
-                </div>
-            `;
-            // ----------------------------------------
-
+            const authorHtml = getAuthorHtml();
 
             card.innerHTML = `
                 ${trendingLabel}
@@ -959,7 +972,8 @@
                                 <span class="like-count">${prompt.likes || 0}</span>
                             </button>
                         </div>
-                        ${authorHtml} </div>
+                        ${authorHtml} 
+                    </div>
                     <p>Date: ${prompt.dateCreated || 'N/A'}</p>
                 </div>
             `;
@@ -1020,7 +1034,7 @@
             renderCards(favoritePrompts, favoritesGrid);
         }
 
-
+        // --- DETAIL PAGE LOGIC (UPDATED for Author Info and Title) ---
         function showDetailPage(id) {
             const prompt = allPrompts.find(p => p.id === id); 
             
@@ -1031,6 +1045,18 @@
 
             incrementClickCount(id); 
 
+            // Inject Title
+            detailPromptTitle.textContent = prompt.title;
+
+            // Inject Author Info below the title (FIX 2)
+            const detailInfoHeader = detailPage.querySelector('.detail-info-header');
+            let existingAuthor = detailInfoHeader.querySelector('.author-info');
+            if (existingAuthor) {
+                existingAuthor.remove();
+            }
+            detailInfoHeader.insertAdjacentHTML('beforeend', getAuthorHtml()); 
+            
+            // Image Fix: Get the correct image URL
             const detailImageUrl = prompt.promptImageUrl || prompt.coverImageUrl;
 
             detailPromptImage.src = detailImageUrl; 
@@ -1257,3 +1283,4 @@
     </script>
 </body>
 </html>
+            
