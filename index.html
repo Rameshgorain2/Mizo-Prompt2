@@ -141,8 +141,28 @@
         <div id="copied-alert" class="alert-message" style="display: none;">Prompt Copied!</div>
         <div id="app-alert" class="alert-message"></div>
     </div>
+
+    <!-- AD MODAL (POPUP) -->
+    <div id="ad-modal" class="ad-modal-overlay">
+        <div class="ad-modal-content">
+            <h3 style="margin-bottom: 10px; color: var(--text-color);">Please Wait...</h3>
+            
+            <!-- Sponsor Image -->
+            <div class="ad-image-wrapper">
+                <img src="https://i.ibb.co/bjwvBKk8/converted-image.webp" alt="Sponsor Ad" class="ad-image">
+            </div>
+
+            <!-- Timer and Button -->
+            <div class="ad-footer">
+                <p id="ad-timer-text">Wait <span id="ad-countdown">5</span>s</p>
+                <button id="ad-skip-btn" class="skip-button" onclick="executeSkipAndCopy()">
+                    Skip & Copy <i class="fas fa-forward"></i>
+                </button>
+            </div>
+        </div>
+    </div>
     
     <!-- Custom JS -->
     <script src="script.js"></script>
 </body>
-                </html></html>
+</html>
