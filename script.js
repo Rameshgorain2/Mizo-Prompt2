@@ -533,7 +533,7 @@ async function likePrompt(event, promptId, buttonElement) {
     buttonElement.classList.remove('liked-pop');
     
     let likedPrompts = JSON.parse(localStorage.getItem('likedPrompts') || '{}');
-    const isLiked = likedPrompts[promptId];
+     const isLiked = likedPrompts[promptId];
     
     const countElement = buttonElement.querySelector('.like-count');
     let currentCount = parseInt(countElement.textContent);
@@ -549,4 +549,188 @@ async function likePrompt(event, promptId, buttonElement) {
         updateValue = 1;
         buttonElement.classList.add('liked'); 
         buttonElement.classList.add('liked-pop'); 
-        countElement.textContent = curre});
+        countElement.textContent = currentCount + 1;
+        likedPrompts[promptId] = true;
+        showAlert("Added to Favorites!", 'success');
+        
+        setTimeout(() => {
+            buttonElement.classList.remove('liked-pop');
+        }, 400); 
+    }
+    
+    localStorage.setItem('likedPrompts', JSON.stringify(likedPrompts));
+
+    if (updateValue !== 0) {
+        try {
+            await db.ref(`prompts/${promptId}/likes`).transaction((currentLikes) => {
+                const newLikes = (currentLikes || 0) + updateValue;
+                return newLikes >= 0 ? newLikes : 0; 
+            });
+            sortPrompts(currentSort);
+            if (favoritesPage.style.display !== 'none') {
+                renderFavorites();
+            }
+            if (profilePage.style.display !== 'none') {
+                 renderProfileView(CURRENT_AUTHOR_KEY); 
+            }
+        } catch (error) {
+            console.error("Firebase update failed:", error);
+        }
+    }
+}
+
+// --- CLICK COUNT LOGIC ---
+function getClickData() {
+    const clicks = localStorage.getItem('promptClicks');
+    return clicks ? JSON.parse(clicks) : {};
+}
+
+function incrementClickCount(id) {
+    const clickData = getClickData();
+    clickData[id] = (clickData[id] || 0) + 1; 
+    localStorage.setItem('promptClicks', JSON.stringify(clickData));
+}
+
+// --- DATA LOADING & INITIALIZATION ---
+async function renderListingPage() {
+    showLoader(true);
+    setProgress(50); 
+    
+    try {
+        const snapshot = await db.ref('prompts').once('value');
+        const promptsObject = snapshot.val();
+        
+        setProgress(80); 
+        
+        if (!promptsObject) {
+            listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; color:#ff6b6b; padding-top: 50px;">No prompts available yet! Database is empty.</p>`;
+            setProgress(100);
+            setTimeout(() => setProgress(0), 300); 
+            return;
+        }
+
+        allPrompts = Object.keys(promptsObject).map(key => ({
+            id: key, 
+            ...promptsObject[key] 
+        }));
+        
+        currentSort = 'latest';
+        
+        // Initial sorting based on default logic (Latest)
+        sortPrompts(currentSort); 
+
+        setProgress(100); 
+        setTimeout(() => {
+            setProgress(0);
+            // CRITICAL: Call routing handler AFTER data is loaded to handle direct links (e.g. /post-name)
+            handleRouting();
+        }, 300); 
+
+    } catch (error) {
+        console.error("Firebase Connection Error:", error);
+        listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; color:#ff6b6b; padding-top: 50px;">🔴 ERROR: Could not connect to Firebase.<br>(${error.message})</p>`;
+        setProgress(100);
+        setTimeout(() => setProgress(0), 300); 
+    }
+}
+
+// --- AD FLOW & COPY LOGIC ---
+function startAdFlow(text) {
+    // 1. Store text
+    tempPromptText = text;
+    
+    // 2. Reset UI
+    adModal.style.display = 'flex';
+    adSkipBtn.style.display = 'none';
+    adTimerText.style.display = 'block';
+    
+    let timeLeft = 5;
+    adCountdownSpan.textContent = timeLeft;
+    
+    // 3. Clear existing interval if any
+    if (countdownInterval) clearInterval(countdownInterval);
+    
+    // 4. Start Countdown
+    countdownInterval = setInterval(() => {
+        timeLeft--;
+        adCountdownSpan.textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+            clearInterval(countdownInterval);
+            adTimerText.style.display = 'none';
+            adSkipBtn.style.display = 'inline-block';
+        }
+    }, 1000);
+}
+
+function executeSkipAndCopy() {
+    // 1. Copy Prompt
+    copyPrompt(tempPromptText);
+    
+    // 2. Close Modal
+    adModal.style.display = 'none';
+    
+    // 3. Cleanup
+    tempPromptText = "";
+    clearInterval(countdownInterval);
+}
+
+async function copyPrompt(text) {
+    const copyBtn = document.getElementById('copy-btn');
+    
+    const showCopySuccess = () => {
+        copyBtn.classList.add('copied');
+        copyBtn.classList.add('animate');
+        copiedAlert.style.display = 'block'; 
+
+        setTimeout(() => {
+            copyBtn.classList.remove('animate'); 
+            setTimeout(() => {
+                copiedAlert.style.display = 'none'; 
+                copyBtn.classList.remove('copied'); 
+            }, 200); 
+        }, 2500); 
+    };
+
+    const doCopy = async () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (err) {
+                console.error('Clipboard API copy failed, falling back:', err);
+            }
+        }
+        
+        if (document.execCommand) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                return true;
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                return false;
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+        return false; 
+    }
+
+    const copySuccessful = await doCopy();
+
+    if (copySuccessful) {
+        showCopySuccess();
+    } else {
+        showAlert("Copy Failed! Try manually.", 'error', 3000);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadThemePreference(); 
+    renderListingPage();   
+});
+    
