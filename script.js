@@ -7,6 +7,14 @@ const DEFAULT_VERIFIED_ICON = "https://i.ibb.co/TMPHwgGp/Picsart-25-12-04-06-32-
 const CURRENT_AUTHOR_KEY = 'ramesh_gorain'; 
 // -------------------------------
 
+// --- AD VARIABLES ---
+const adModal = document.getElementById('ad-modal');
+const adSkipBtn = document.getElementById('ad-skip-btn');
+const adTimerText = document.getElementById('ad-timer-text');
+const adCountdownSpan = document.getElementById('ad-countdown');
+let tempPromptText = ""; // Prompt text ko hold karne ke liye
+let countdownInterval;
+
 // 1. FIREBASE CONFIGURATION & INITIALIZATION
 const firebaseConfig = {
     apiKey: "AIzaSyBgB1CD5wtXN7E2a_Qd7ch6pt2t6lzJLX8",
@@ -379,6 +387,10 @@ function hideAllPages() {
     profilePage.style.display = 'none'; 
     searchInput.classList.remove('expanded');
     sortFilterMenu.style.display = 'none';
+    
+    // Safety check for modal
+    adModal.style.display = 'none';
+    clearInterval(countdownInterval);
 }
 
 // 1. HOME / LISTING VIEW
@@ -472,7 +484,9 @@ function renderDetailView(id) {
     
     detailPromptText.textContent = prompt.promptText; 
     
-    copyButton.onclick = () => copyPrompt(prompt.promptText);
+    // UPDATED: Start Ad Flow instead of direct copy
+    copyButton.onclick = () => startAdFlow(prompt.promptText);
+    
     geminiButton.onclick = handleGeminiClick;
 
     detailPage.style.display = 'block';
@@ -535,146 +549,4 @@ async function likePrompt(event, promptId, buttonElement) {
         updateValue = 1;
         buttonElement.classList.add('liked'); 
         buttonElement.classList.add('liked-pop'); 
-        countElement.textContent = currentCount + 1;
-        likedPrompts[promptId] = true;
-        showAlert("Added to Favorites!", 'success');
-        
-        setTimeout(() => {
-            buttonElement.classList.remove('liked-pop');
-        }, 400); 
-    }
-    
-    localStorage.setItem('likedPrompts', JSON.stringify(likedPrompts));
-
-    if (updateValue !== 0) {
-        try {
-            await db.ref(`prompts/${promptId}/likes`).transaction((currentLikes) => {
-                const newLikes = (currentLikes || 0) + updateValue;
-                return newLikes >= 0 ? newLikes : 0; 
-            });
-            sortPrompts(currentSort);
-            if (favoritesPage.style.display !== 'none') {
-                renderFavorites();
-            }
-            if (profilePage.style.display !== 'none') {
-                 renderProfileView(CURRENT_AUTHOR_KEY); 
-            }
-        } catch (error) {
-            console.error("Firebase update failed:", error);
-        }
-    }
-}
-
-// --- CLICK COUNT LOGIC ---
-function getClickData() {
-    const clicks = localStorage.getItem('promptClicks');
-    return clicks ? JSON.parse(clicks) : {};
-}
-
-function incrementClickCount(id) {
-    const clickData = getClickData();
-    clickData[id] = (clickData[id] || 0) + 1; 
-    localStorage.setItem('promptClicks', JSON.stringify(clickData));
-}
-
-// --- DATA LOADING & INITIALIZATION ---
-async function renderListingPage() {
-    showLoader(true);
-    setProgress(50); 
-    
-    try {
-        const snapshot = await db.ref('prompts').once('value');
-        const promptsObject = snapshot.val();
-        
-        setProgress(80); 
-        
-        if (!promptsObject) {
-            listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; color:#ff6b6b; padding-top: 50px;">No prompts available yet! Database is empty.</p>`;
-            setProgress(100);
-            setTimeout(() => setProgress(0), 300); 
-            return;
-        }
-
-        allPrompts = Object.keys(promptsObject).map(key => ({
-            id: key, 
-            ...promptsObject[key] 
-        }));
-        
-        currentSort = 'latest';
-        
-        // Initial sorting based on default logic (Latest)
-        sortPrompts(currentSort); 
-
-        setProgress(100); 
-        setTimeout(() => {
-            setProgress(0);
-            // CRITICAL: Call routing handler AFTER data is loaded to handle direct links (e.g. /post-name)
-            handleRouting();
-        }, 300); 
-
-    } catch (error) {
-        console.error("Firebase Connection Error:", error);
-        listingPage.innerHTML = `<p class="loading-text" style="grid-column: 1 / -1; font-size: 1.2rem; text-align: center; color:#ff6b6b; padding-top: 50px;">🔴 ERROR: Could not connect to Firebase.<br>(${error.message})</p>`;
-        setProgress(100);
-        setTimeout(() => setProgress(0), 300); 
-    }
-}
-
-async function copyPrompt(text) {
-    const copyBtn = document.getElementById('copy-btn');
-    
-    const showCopySuccess = () => {
-        copyBtn.classList.add('copied');
-        copyBtn.classList.add('animate');
-        copiedAlert.style.display = 'block'; 
-
-        setTimeout(() => {
-            copyBtn.classList.remove('animate'); 
-            setTimeout(() => {
-                copiedAlert.style.display = 'none'; 
-                copyBtn.classList.remove('copied'); 
-            }, 200); 
-        }, 2500); 
-    };
-
-    const doCopy = async () => {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            try {
-                await navigator.clipboard.writeText(text);
-                return true;
-            } catch (err) {
-                console.error('Clipboard API copy failed, falling back:', err);
-            }
-        }
-        
-        if (document.execCommand) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                return true;
-            } catch (err) {
-                console.error('Fallback copy failed:', err);
-                return false;
-            } finally {
-                document.body.removeChild(textarea);
-            }
-        }
-        return false; 
-    }
-
-    const copySuccessful = await doCopy();
-
-    if (copySuccessful) {
-        showCopySuccess();
-    } else {
-        showAlert("Copy Failed! Try manually.", 'error', 3000);
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadThemePreference(); 
-    renderListingPage();   
-});
+        countElement.textContent = curre});
